@@ -14,7 +14,6 @@
     ];
     
     shellHook = ''
-        export I686_GCC=i686-elf-gcc
-        export I686_LD=i686-elf-ld
+        export I686_GCC=x86_64-unknown-linux-gnu-gcc
     '';
 }
