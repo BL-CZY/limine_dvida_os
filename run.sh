@@ -1,1 +1,1 @@
-qemu-system-x86_64 -cdrom build/image.iso
+qemu-system-x86_64 -cdrom build/image.iso -vga virtio 1280x800
