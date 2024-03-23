@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 extern uint32_t *terminal_buffer_addr;
 extern uint64_t terminal_width;
@@ -18,5 +19,6 @@ size_t strlen(char* str);
 void set_cursor(int row, int col, int remove);
 void terminal_putchar(char character);
 void terminal_advance();
+void printf_no_color(char* format);
 
 #endif

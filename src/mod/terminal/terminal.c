@@ -373,6 +373,11 @@ void terminal_init(void *addr, const uint64_t width, const uint64_t height) {
     set_cursor(current_row, current_col, 0);
 }
 
+void terminal_set_resolution(const uint64_t width, const uint64_t height) {
+    terminal_width = width/8;
+    terminal_height = height/16;
+}
+
 size_t strlen(char* str) {
     size_t size = 0;
     while(str[size])
@@ -406,6 +411,8 @@ void set_cursor(int row, int col, int remove) {
         }
     }
 
+    return;
+
     render:
     //render the cursor
     for(int i = 0; i < 16; ++i)
@@ -421,11 +428,24 @@ void set_cursor(int row, int col, int remove) {
     cursor_col = current_col;
 }
 
+void terminal_moveup()
+{
+    //TODO implement this
+}
+
 void terminal_advance() {
-    if(++current_col == terminal_width)
-    {
+    if(++current_col == terminal_width) {
         current_col = 0;
-        ++current_row;
+        if(++current_row == terminal_height) {
+            terminal_moveup();
+        }
+    }
+}
+
+void terminal_newline() {
+    current_col = 0;
+    if(++current_row == terminal_height) {
+        terminal_moveup();
     }
 }
 
@@ -453,10 +473,95 @@ void terminal_putchar(char character) {
     terminal_advance();
 }
 
-void printf(char *format) {
+void printf_no_color(char* format)
+{
     for(size_t i = 0; i < strlen(format); ++i)
     {
         terminal_putchar(format[i]);
     }
+}
+
+void printf(char* format, ...)
+{
+    set_cursor(current_row, current_col, 1);
+    size_t length = strlen(format);
+    bg_color = 0x000000;
+    fg_color = 0xFFFFFF;
+    va_list args;
+    va_start(args, format);
+
+    for(size_t i = 0; i < length; ++i)
+    {
+        switch(format[i])
+        {
+            case '\n':
+                terminal_newline();
+                break;
+                
+            case '%':
+                switch(format[++i])
+                {
+                    case '%':
+                        terminal_putchar('%');
+                        break;
+
+                    case 'c': //stands for color
+                        switch(format[++i])
+                        {
+                            case 'd': //stands for default
+                                bg_color = 0x000000;
+                                fg_color = 0xFFFFFF;
+                                break;
+
+                            case 'e': //stands for error
+                                bg_color = 0x000000;
+                                fg_color = 0xFF0000;
+                                break;
+
+                            case 'c': //stands for customized
+                                uint64_t color = (uint64_t)va_arg(args, unsigned long long int);
+                                bg_color = (uint32_t)(color & 0xFFFFFF);
+                                fg_color = (uint32_t)((color >> 32) & 0xFFFFFF);
+                                break;
+                        }
+                        break;
+
+                    case 's': //stands for string
+                        char* str = va_arg(args, char*);
+                        printf_no_color(str);
+                        break;
+
+                    case 'u': //stands for unsigned int
+                        uint32_t num = (uint32_t)va_arg(args, int);
+                        char buffer[10];
+                        int ind = 0;
+                        if(num == 0)
+                        {
+                            terminal_putchar('0');
+                        }
+                        while(num != 0)
+                        {
+                            buffer[ind] = '0' + num % 10;
+                            num /= 10;
+                            ++ind;
+                        }
+                        --ind;
+                        while(ind >= 0)
+                        {
+                            terminal_putchar(buffer[ind]);
+                            --ind;
+                        }
+                        break;
+                }
+                break;
+
+            default:
+                terminal_putchar(format[i]);
+        }
+    }
+
+    bg_color = 0x000000;
+    fg_color = 0xFFFFFF;
+
     set_cursor(current_row, current_col, 0);
 }
