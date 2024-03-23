@@ -31,7 +31,7 @@ static void hcf(void) {
     }
 }
 
-// extern void gdt_init(void);
+extern void gdt_init(void);
 extern void kernel_main();
 
 // The following will be our kernel's entry point.
@@ -49,7 +49,7 @@ void _start(void) {
         hcf();
     }
 
-    // gdt_init();
+    gdt_init();
  
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
