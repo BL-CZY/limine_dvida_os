@@ -53,7 +53,6 @@ void _start(void) {
     gdt_init();
     idt_init();
     asm("sti");
-    asm("int $0x00");
  
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
@@ -61,6 +60,7 @@ void _start(void) {
     // initialize the terminal
     terminal_init(framebuffer->address, framebuffer->width, framebuffer->height);
     terminal_set_resolution(860, 600);
+    asm("int $0x00");
 
     kernel_main();
  

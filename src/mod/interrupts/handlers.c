@@ -13,9 +13,8 @@ typedef struct interrupt_info
 } interrupt_info_t;
 
 void __attribute__((cdecl)) isr_handler(interrupt_info_t *info) {
-    asm ("cli");
-    for (;;) {
-        asm ("hlt");
+    printf("%u", info->int_num);
+    for(;;){
+        asm("hlt");
     }
-    printf("interrupt %u got triggered", info->int_num);
 }

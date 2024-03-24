@@ -23,17 +23,19 @@ idt_init:
         je .end ; jump if equal
 
         mov rbx, [isr_stub_table + rax * 8] ; mov the address of the handler to rbx
+        mov rcx, rax
+        imul rcx, 16
 
-        mov word [idt_start + rax * 8], bx ; get the lower 16 bits of the address
-        mov word [idt_start + rax * 8 + 2], 0x08 ; set the kernel code segment selector
-        mov byte [idt_start + rax * 8 + 4], 0x00 ; reserved
-        mov byte [idt_start + rax * 8 + 5], 0b10001111 ; set flags
+        mov word [idt_start + rcx], bx ; get the lower 16 bits of the address
+        mov word [idt_start + rcx + 2], 0x08 ; set the kernel code segment selector
+        mov byte [idt_start + rcx + 4], 0x00 ; reserved
+        mov byte [idt_start + rcx + 5], 0b10001111 ; set flags
 
         shr rbx, 16 ; get the higher 16 bits of the address
-        mov word [idt_start + rax * 8 + 6], bx ; set the address of the handler
+        mov word [idt_start + rcx + 6], bx ; set the address of the handler
         shr rbx, 16
-        mov dword [idt_start + rax * 8 + 8], ebx
-        mov dword [idt_start + rax * 8 + 12], 0
+        mov dword [idt_start + rcx + 8], ebx
+        mov dword [idt_start + rcx + 12], 0
 
         inc rax ; increment the counter
         jmp .set_entry ; loop
