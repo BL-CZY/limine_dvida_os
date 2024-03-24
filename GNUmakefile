@@ -74,6 +74,7 @@ override LDFLAGS += \
     -nostdlib \
     -static \
     -z text \
+    --no-dynamic-linker \
     -z max-page-size=0x1000 \
     -T linker.ld
  

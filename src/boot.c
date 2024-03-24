@@ -32,6 +32,7 @@ static void hcf(void) {
 }
 
 extern void gdt_init(void);
+extern void idt_init(void);
 extern void kernel_main();
 
 // The following will be our kernel's entry point.
@@ -50,6 +51,9 @@ void _start(void) {
     }
 
     gdt_init();
+    idt_init();
+    asm("sti");
+    asm("int $0x00");
  
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
