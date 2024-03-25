@@ -5,7 +5,7 @@
 isr_handler_wrapper_%1:
     push 0 ; error code, 0 means no
     push %1 ; exception number
-    call isr_common
+    jmp isr_common
 
 %endmacro
 
@@ -13,7 +13,7 @@ isr_handler_wrapper_%1:
 
 isr_handler_wrapper_%1:
     push %1 ; exception number
-    call isr_common
+    jmp isr_common
 
 %endmacro
 
@@ -48,6 +48,7 @@ isr_common:
     push r14
     push r15
 
+    xor rax, rax
     mov rax, ds
     push rax
     mov rax, es
@@ -66,11 +67,9 @@ isr_common:
     mov rax, cr4
     push rax
 
-    push rsp
+    mov rdi, rsp
 
     call isr_handler
-
-    pop rsp
 
     pop rax
     mov cr4, rax
@@ -107,6 +106,8 @@ isr_common:
     pop rbx
     pop rax
 
+    pop rax
+    pop rax
     iretq
 
 ; this file is auto-generated
