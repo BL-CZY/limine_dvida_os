@@ -14,8 +14,11 @@ extern size_t cursor_row;
 extern size_t cursor_col;
 extern uint32_t bg_color;
 extern uint32_t fg_color;
+extern int cursor_blink_phase;
+extern int cursor_blink_speed;
 
 size_t strlen(char* str);
+void update_cursor_blink();
 void set_cursor(int row, int col, int remove);
 void terminal_putchar(char character);
 void terminal_advance();

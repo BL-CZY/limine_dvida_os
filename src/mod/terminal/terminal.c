@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "../../lib/std/stdio.h"
+#include "../../lib/time/time.h"
 
 static const uint8_t builtin_font[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -346,9 +347,11 @@ static const uint8_t builtin_font[] = {
     0x00, 0x00, 0x00, 0x00
 };
 
+uint64_t terminal_color_buffer[50][160];
+unsigned char terminal_text_buffer[50][160];
 uint64_t frame_buffer_width;
 uint64_t frame_buffer_height;
-uint32_t *terminal_buffer_addr;
+uint32_t *frame_buffer_addr;
 uint64_t terminal_width;
 uint64_t terminal_height;
 size_t current_row;
@@ -357,9 +360,28 @@ size_t cursor_row;
 size_t cursor_col;
 uint32_t bg_color;
 uint32_t fg_color;
+//1 means on, 0 means off
+int cursor_blink_phase;
+int cursor_blink_speed;
+int internal_counter = 0;
 
-void terminal_init(void *addr, const uint64_t width, const uint64_t height) {
-    terminal_buffer_addr = (uint32_t *)addr;
+void update_cursor_blink() {
+    if(cursor_blink_phase == 1 && internal_counter == cursor_blink_speed) {
+        internal_counter = 0;
+        cursor_blink_phase = 0;
+        set_cursor(cursor_row, cursor_col, 1);
+    } else if(internal_counter == cursor_blink_speed) {
+        internal_counter = 0;
+        cursor_blink_phase = 1;
+        set_cursor(cursor_row, cursor_col, 0);
+    } else {
+        ++internal_counter;
+    }
+}
+
+void terminal_init(void *addr, const uint64_t width, const uint64_t height, const int blink_speed) {
+    //basic info part
+    frame_buffer_addr = (uint32_t *)addr;
     frame_buffer_width = width;
     frame_buffer_height = height;
     terminal_width = width/8;
@@ -370,7 +392,21 @@ void terminal_init(void *addr, const uint64_t width, const uint64_t height) {
     fg_color = 0xFFFFFF;
     cursor_row = 0;
     cursor_col = 0;
+
+    //cursor part
     set_cursor(current_row, current_col, 0);
+    cursor_blink_phase = 1;
+    cursor_blink_speed = blink_speed;
+    register_update_function(update_cursor_blink);
+
+    //buffer part
+    for(int i = 0; i < 50; ++i) {
+        for(int j = 0; j < 160; ++j)
+        {
+            terminal_color_buffer[i][j] = 0b11111100000000;
+            terminal_text_buffer[i][j] = '\0';
+        }
+    }
 }
 
 void terminal_set_resolution(const uint64_t width, const uint64_t height) {
@@ -407,13 +443,18 @@ void set_cursor(int row, int col, int remove) {
         {
             //location -> pixel
             size_t pixel_offset = (cursor_row * 16 + i) * frame_buffer_width + cursor_col * 8 + j;
-            *(uint32_t *)(terminal_buffer_addr + pixel_offset) = bg_color;
+            *(uint32_t *)(frame_buffer_addr + pixel_offset) = bg_color;
         }
     }
 
     return;
 
     render:
+    
+    //! USE OF GOTO TO SKIP THE rendering part if the cursor is now invisible
+    if(cursor_blink_phase == 0) {
+        goto set_cursor_position;
+    }
     //render the cursor
     for(int i = 0; i < 16; ++i)
     {
@@ -421,22 +462,49 @@ void set_cursor(int row, int col, int remove) {
         {
             //location -> pixel
             size_t pixel_offset = (current_row * 16 + i) * frame_buffer_width + current_col * 8 + j;
-            *(uint32_t *)(terminal_buffer_addr + pixel_offset) = 0xFFFFFF;
+            *(uint32_t *)(frame_buffer_addr + pixel_offset) = 0xFFFFFF;
         }
     }
+
+    set_cursor_position:
+
     cursor_row = current_row;
     cursor_col = current_col;
 }
 
-void terminal_moveup()
-{
-    //TODO implement this
+void render_buffer() {
+    current_row = 0;
+    current_col = 0;
+    for(int i = 0; i < (int)terminal_height; ++i) {
+        for(int j = 0; j < (int)terminal_width; ++j) {
+            bg_color = (uint32_t)(terminal_color_buffer[i][j]);
+            fg_color = (uint32_t)(terminal_color_buffer[i][j] >> 32);
+            terminal_putchar(terminal_text_buffer[i][j]);
+        }
+    }
+    set_cursor(current_row, current_col, 0);
+}
+
+void terminal_moveup() {
+    for(int i = 1; i < (int)terminal_height; ++i) {
+        for(int j = 0; j < (int)terminal_width; ++j) {
+            terminal_color_buffer[i - 1][j] = terminal_color_buffer[i][j];
+            terminal_text_buffer[i - 1][j] = terminal_text_buffer[i][j];
+        }
+    }
+    for(int i = 0; i < (int)terminal_width; ++i) {
+        terminal_color_buffer[terminal_height - 1][i] = 0b11111100000000;
+        terminal_text_buffer[terminal_height - 1][i] = '\0';
+    }
+
+    render_buffer();
 }
 
 void terminal_advance() {
     if(++current_col == terminal_width) {
         current_col = 0;
         if(++current_row == terminal_height) {
+            current_row = terminal_height - 1;
             terminal_moveup();
         }
     }
@@ -445,6 +513,7 @@ void terminal_advance() {
 void terminal_newline() {
     current_col = 0;
     if(++current_row == terminal_height) {
+        current_row = terminal_height - 1;
         terminal_moveup();
     }
 }
@@ -463,13 +532,15 @@ void terminal_putchar(char character) {
 
             //if the bit is 1, then it's fg, otherwise bg
             if(((builtin_font[font_offset + i] >> (7 - j)) & 0x1) == 0x1) {
-                *(uint32_t *)(terminal_buffer_addr + pixel_offset) = fg_color;
+                *(uint32_t *)(frame_buffer_addr + pixel_offset) = fg_color;
             } else {
-                *(uint32_t *)(terminal_buffer_addr + pixel_offset) = bg_color;
+                *(uint32_t *)(frame_buffer_addr + pixel_offset) = bg_color;
             }
         }
     }
 
+    terminal_color_buffer[current_row][current_col] = ((uint64_t)(fg_color) << 32) & ((uint64_t)(bg_color));
+    terminal_text_buffer[current_row][current_col] = character;
     terminal_advance();
 }
 

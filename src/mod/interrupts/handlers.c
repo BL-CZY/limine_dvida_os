@@ -1,6 +1,7 @@
 #include "handlers.h"
 #include "../../lib/std/stdio.h"
 #include "../../lib/utils/pic_utils.h"
+#include "../../lib/time/time.h"
 
 typedef struct interrupt_info
 {
@@ -12,9 +13,16 @@ typedef struct interrupt_info
     uint64_t rip, cs, eflags, rsp_sys, ss;
 } interrupt_info_t;
 
+void irq_0() {
+    on_update();
+}
+
 void irq_handler(interrupt_info_t *info) {
     switch(info->int_num - 32)
     {        
+        case 0:
+            irq_0();
+            break;
         default:
             printf("unhandled irq number %u\n", info->int_num - 32);
             break;

@@ -61,8 +61,8 @@ void _start(void) {
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
     // initialize the terminal
-    terminal_init(framebuffer->address, framebuffer->width, framebuffer->height);
-    terminal_set_resolution(860, 600);
+    terminal_init(framebuffer->address, framebuffer->width, framebuffer->height, 3);
+    terminal_set_resolution(860, 512);
 
     kernel_main();
  
