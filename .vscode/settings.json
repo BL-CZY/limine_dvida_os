@@ -53,6 +53,8 @@
         "stdio.h": "c",
         "stddef.h": "c",
         "terminal.h": "c",
-        "limine.h": "c"
+        "limine.h": "c",
+        "pic_utils.h": "c",
+        "mem_utils.h": "c"
     }
 }

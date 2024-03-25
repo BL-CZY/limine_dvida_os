@@ -1,5 +1,6 @@
 #include "handlers.h"
 #include "../../lib/std/stdio.h"
+#include "../../lib/utils/pic_utils.h"
 
 typedef struct interrupt_info
 {
@@ -11,6 +12,25 @@ typedef struct interrupt_info
     uint64_t rip, cs, eflags, rsp_sys, ss;
 } interrupt_info_t;
 
+void irq_handler(interrupt_info_t *info) {
+    switch(info->int_num - 32)
+    {        
+        default:
+            printf("unhandled irq number %u\n", info->int_num - 32);
+            break;
+    }
+    pic_send_end_of_interrupt(info->int_num - 32);
+}
+
 void isr_handler(interrupt_info_t *info) {
-    printf("unhandled interrupt number %u\n", info->int_num);
+    if(info->int_num >= 32 && info->int_num < 48) {
+        irq_handler(info);
+        return;
+    }
+    switch(info->int_num)
+    {
+        default:
+            printf("unhandled isr number %u\n", info->int_num);
+            break;
+    }
 }

@@ -5,6 +5,7 @@
 #include <limine.h>
 
 #include "lib/utils/mem_utils.h"
+#include "lib/utils/asm_utils.h"
 #include "lib/std/stdio.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
@@ -33,6 +34,7 @@ static void hcf(void) {
 
 extern void gdt_init(void);
 extern void idt_init(void);
+extern void pic_init();
 extern void kernel_main();
 
 // The following will be our kernel's entry point.
@@ -52,7 +54,8 @@ void _start(void) {
 
     gdt_init();
     idt_init();
-    asm("sti");
+    enable_interrupt();
+    pic_init();
  
     // Fetch the first framebuffer.
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
