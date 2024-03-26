@@ -2,6 +2,7 @@
 #include "../../lib/std/stdio.h"
 #include "../../lib/utils/pic_utils.h"
 #include "../../lib/time/time.h"
+#include "../../lib/utils/asm_utils.h"
 
 typedef struct interrupt_info
 {
@@ -17,11 +18,19 @@ void irq_0() {
     on_update();
 }
 
+void irq_1() {
+    inb(0x60);
+    printf("%u\n", global_timer);
+}
+
 void irq_handler(interrupt_info_t *info) {
     switch(info->int_num - 32)
     {        
         case 0:
             irq_0();
+            break;
+        case 1:
+            irq_1();
             break;
         default:
             printf("unhandled irq number %u\n", info->int_num - 32);

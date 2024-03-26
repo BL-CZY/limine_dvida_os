@@ -20,8 +20,10 @@ extern int cursor_blink_speed;
 size_t strlen(char* str);
 void update_cursor_blink();
 void set_cursor(int row, int col, int remove);
+void render_char(char character, int row, int col);
 void terminal_putchar(char character);
 void terminal_advance();
+void terminal_back();
 void printf_no_color(char* format);
 
 #endif

@@ -348,7 +348,7 @@ static const uint8_t builtin_font[] = {
 };
 
 uint64_t terminal_color_buffer[50][160];
-unsigned char terminal_text_buffer[50][160];
+char terminal_text_buffer[50][160];
 uint64_t frame_buffer_width;
 uint64_t frame_buffer_height;
 uint32_t *frame_buffer_addr;
@@ -403,7 +403,7 @@ void terminal_init(void *addr, const uint64_t width, const uint64_t height, cons
     for(int i = 0; i < 50; ++i) {
         for(int j = 0; j < 160; ++j)
         {
-            terminal_color_buffer[i][j] = 0b11111100000000;
+            terminal_color_buffer[i][j] = 0xFFFFFF00000000;
             terminal_text_buffer[i][j] = '\0';
         }
     }
@@ -472,16 +472,37 @@ void set_cursor(int row, int col, int remove) {
     cursor_col = current_col;
 }
 
+void render_char(char character, int row, int col) {
+    //get the character
+    size_t font_offset = character * 16;
+    //render the character
+    for(int i = 0; i < 16; ++i)
+    {
+        for(int j = 0; j < 8; ++j)
+        {
+            //location -> pixel
+            size_t pixel_offset = (row * 16 + i) * frame_buffer_width + col * 8 + j;
+
+            //if the bit is 1, then it's fg, otherwise bg
+            if(((builtin_font[font_offset + i] >> (7 - j)) & 0x1) == 0x1) {
+                *(uint32_t *)(frame_buffer_addr + pixel_offset) = fg_color;
+            } else {
+                *(uint32_t *)(frame_buffer_addr + pixel_offset) = bg_color;
+            }
+        }
+    }
+}
+
 void render_buffer() {
-    current_row = 0;
-    current_col = 0;
     for(int i = 0; i < (int)terminal_height; ++i) {
         for(int j = 0; j < (int)terminal_width; ++j) {
             bg_color = (uint32_t)(terminal_color_buffer[i][j]);
-            fg_color = (uint32_t)(terminal_color_buffer[i][j] >> 32);
-            terminal_putchar(terminal_text_buffer[i][j]);
+            fg_color = (uint32_t)((terminal_color_buffer[i][j] >> 32));
+            render_char(terminal_text_buffer[i][j], i, j);
         }
     }
+    current_row = terminal_height - 1;
+    current_col = 0;
     set_cursor(current_row, current_col, 0);
 }
 
@@ -493,7 +514,7 @@ void terminal_moveup() {
         }
     }
     for(int i = 0; i < (int)terminal_width; ++i) {
-        terminal_color_buffer[terminal_height - 1][i] = 0b11111100000000;
+        terminal_color_buffer[terminal_height - 1][i] = 0xFFFFFF00000000;
         terminal_text_buffer[terminal_height - 1][i] = '\0';
     }
 
@@ -507,6 +528,19 @@ void terminal_advance() {
             current_row = terminal_height - 1;
             terminal_moveup();
         }
+    }
+}
+
+void terminal_back() {
+    if(current_col == 0) {
+        current_col = terminal_width - 1;
+        if(current_row == 0) {
+            current_row = 0;
+        } else {
+            --current_row;
+        }
+    } else {
+        --current_col;
     }
 }
 
@@ -539,7 +573,7 @@ void terminal_putchar(char character) {
         }
     }
 
-    terminal_color_buffer[current_row][current_col] = ((uint64_t)(fg_color) << 32) & ((uint64_t)(bg_color));
+    terminal_color_buffer[current_row][current_col] = ((uint64_t)(fg_color) << 32) | ((uint64_t)(bg_color));
     terminal_text_buffer[current_row][current_col] = character;
     terminal_advance();
 }
@@ -635,4 +669,17 @@ void printf(char* format, ...)
     fg_color = 0xFFFFFF;
 
     set_cursor(current_row, current_col, 0);
+}
+
+void erasef(size_t num) {
+    for(size_t i = 0; i < num; ++i) {
+        if(current_row == 0 && current_col == 0) {
+            return;
+        }
+        terminal_back();
+        fg_color = 0xFFFFFF;
+        bg_color = 0x000000;
+        render_char('\0', current_row, current_col);
+        set_cursor(current_row, current_col, 1);
+    }
 }

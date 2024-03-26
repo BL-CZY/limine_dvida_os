@@ -13,7 +13,6 @@ void on_update () {
         update_list[i]();
     }
     ++global_timer;
-    printf("%u\n", global_timer);
 }
 
 int register_update_function(void (*func)()) {
