@@ -347,6 +347,7 @@ static const uint8_t builtin_font[] = {
     0x00, 0x00, 0x00, 0x00
 };
 
+io_state_t current_io_state;
 uint64_t terminal_color_buffer[50][160];
 char terminal_text_buffer[50][160];
 uint64_t frame_buffer_width;
@@ -365,6 +366,7 @@ int cursor_blink_phase;
 int cursor_blink_speed;
 int internal_counter = 0;
 
+
 void update_cursor_blink() {
     if(cursor_blink_phase == 1 && internal_counter == cursor_blink_speed) {
         internal_counter = 0;
@@ -376,6 +378,27 @@ void update_cursor_blink() {
         set_cursor(cursor_row, cursor_col, 0);
     } else {
         ++internal_counter;
+    }
+}
+
+void render_char(char character, int row, int col) {
+    //get the character
+    size_t font_offset = character * 16;
+    //render the character
+    for(int i = 0; i < 16; ++i)
+    {
+        for(int j = 0; j < 8; ++j)
+        {
+            //location -> pixel
+            size_t pixel_offset = (row * 16 + i) * frame_buffer_width + col * 8 + j;
+
+            //if the bit is 1, then it's fg, otherwise bg
+            if(((builtin_font[font_offset + i] >> (7 - j)) & 0x1) == 0x1) {
+                *(uint32_t *)(frame_buffer_addr + pixel_offset) = fg_color;
+            } else {
+                *(uint32_t *)(frame_buffer_addr + pixel_offset) = bg_color;
+            }
+        }
     }
 }
 
@@ -405,6 +428,16 @@ void terminal_init(void *addr, const uint64_t width, const uint64_t height, cons
         {
             terminal_color_buffer[i][j] = 0xFFFFFF00000000;
             terminal_text_buffer[i][j] = '\0';
+        }
+    }
+}
+
+void terminal_clear() {
+    for(int i = 0; i < (int)terminal_height; ++i) {
+        for(int j = 0; j < (int)terminal_width; ++j) {
+            terminal_text_buffer[i][j] = '\0';
+            terminal_color_buffer[i][j] = 0xFFFFFF00000000;
+            render_char('\0', i, j);
         }
     }
 }
@@ -470,27 +503,6 @@ void set_cursor(int row, int col, int remove) {
 
     cursor_row = current_row;
     cursor_col = current_col;
-}
-
-void render_char(char character, int row, int col) {
-    //get the character
-    size_t font_offset = character * 16;
-    //render the character
-    for(int i = 0; i < 16; ++i)
-    {
-        for(int j = 0; j < 8; ++j)
-        {
-            //location -> pixel
-            size_t pixel_offset = (row * 16 + i) * frame_buffer_width + col * 8 + j;
-
-            //if the bit is 1, then it's fg, otherwise bg
-            if(((builtin_font[font_offset + i] >> (7 - j)) & 0x1) == 0x1) {
-                *(uint32_t *)(frame_buffer_addr + pixel_offset) = fg_color;
-            } else {
-                *(uint32_t *)(frame_buffer_addr + pixel_offset) = bg_color;
-            }
-        }
-    }
 }
 
 void render_buffer() {

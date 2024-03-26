@@ -3,6 +3,7 @@
 #include "../../lib/utils/pic_utils.h"
 #include "../../lib/time/time.h"
 #include "../../lib/utils/asm_utils.h"
+#include "../../lib/std/keyboard.h"
 
 typedef struct interrupt_info
 {
@@ -19,8 +20,7 @@ void irq_0() {
 }
 
 void irq_1() {
-    inb(0x60);
-    printf("%u\n", global_timer);
+    process_key(inb(0x60));
 }
 
 void irq_handler(interrupt_info_t *info) {

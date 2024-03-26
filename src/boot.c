@@ -63,6 +63,8 @@ void _start(void) {
     // initialize the terminal
     terminal_init(framebuffer->address, framebuffer->width, framebuffer->height, 3);
     terminal_set_resolution(860, 512);
+    current_io_state = stdin_command;
+    printf("root > ");
 
     kernel_main();
  
