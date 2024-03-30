@@ -1,9 +1,4 @@
 #include "handlers.h"
-#include "../../lib/std/stdio.h"
-#include "../../lib/utils/pic_utils.h"
-#include "../../lib/time/time.h"
-#include "../../lib/utils/asm_utils.h"
-#include "../../lib/std/keyboard.h"
 
 typedef struct interrupt_info
 {
@@ -14,6 +9,10 @@ typedef struct interrupt_info
     uint64_t int_num, err;
     uint64_t rip, cs, eflags, rsp_sys, ss;
 } interrupt_info_t;
+
+void page_fault(interrupt_info_t *info) {
+    printf("page fault: %b\n", info->err);
+}
 
 void irq_0() {
     on_update();
@@ -46,8 +45,20 @@ void isr_handler(interrupt_info_t *info) {
     }
     switch(info->int_num)
     {
+        case 14:
+            page_fault(info);
+            break;
         default:
             printf("unhandled isr number %u\n", info->int_num);
             break;
+    }
+}
+
+void panic(char *msg) {
+    printf("%ce----------KERNEL PANIC!!!----------%cd");
+    printf(msg);
+    disable_interrupt();
+    for(;;){
+        halt_cpu();
     }
 }

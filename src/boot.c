@@ -7,6 +7,7 @@
 #include "lib/utils/mem_utils.h"
 #include "lib/utils/asm_utils.h"
 #include "lib/std/stdio.h"
+#include "lib/memory/pmm.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -21,6 +22,11 @@ static volatile LIMINE_BASE_REVISION(1);
  
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
+};
+
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0
 };
  
@@ -63,6 +69,11 @@ void _start(void) {
     // initialize the terminal
     terminal_init(framebuffer->address, framebuffer->width, framebuffer->height, 3);
     terminal_set_resolution(860, 512);
+    current_io_state = stdout;
+    /**
+     * do whatever for the setup texts
+    */
+    memmap_init(*memmap_request.response);
     current_io_state = stdin_command;
     printf("root > ");
 

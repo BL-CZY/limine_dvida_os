@@ -56,6 +56,9 @@
         "limine.h": "c",
         "pic_utils.h": "c",
         "mem_utils.h": "c",
-        "str_utils.h": "c"
+        "str_utils.h": "c",
+        "memmap.h": "c",
+        "handle_utils.h": "c",
+        "asm_utils.h": "c"
     }
 }

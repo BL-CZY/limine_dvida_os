@@ -440,6 +440,9 @@ void terminal_clear() {
             render_char('\0', i, j);
         }
     }
+    current_row = 0;
+    current_col = 0;
+    set_cursor(current_col, current_col, 0);
 }
 
 void terminal_set_resolution(const uint64_t width, const uint64_t height) {
@@ -649,8 +652,8 @@ void printf(char* format, ...)
                         break;
 
                     case 'u': //stands for unsigned int
-                        uint32_t num = (uint32_t)va_arg(args, int);
-                        char buffer[10];
+                        uint64_t num = (uint64_t)va_arg(args, unsigned long long int);
+                        char buffer[20];
                         int ind = 0;
                         if(num == 0)
                         {
@@ -667,6 +670,56 @@ void printf(char* format, ...)
                         {
                             terminal_putchar(buffer[ind]);
                             --ind;
+                        }
+                        break;
+
+                    case 'x': //stands for unsigned int
+                        printf_no_color("0x");
+                        uint64_t num1 = (uint64_t)va_arg(args, unsigned long long int);
+                        char buffer1[20];
+                        int ind1 = 0;
+                        if(num1 == 0)
+                        {
+                            terminal_putchar('0');
+                        }
+                        while(num1 != 0)
+                        {
+                            if(num1 % 16 >= 10) {
+                                buffer1[ind1] = 'A' + num1 % 16 - 10;
+                            } else {
+                                buffer1[ind1] = '0' + num1 % 16;
+                            }
+                            num1 /= 16;
+                            ++ind1;
+                        }
+                        --ind1;
+                        while(ind1 >= 0)
+                        {
+                            terminal_putchar(buffer1[ind1]);
+                            --ind1;
+                        }
+                        break;
+
+                    case 'b': //stands for unsigned int
+                        printf_no_color("0b");
+                        uint64_t num2 = (uint64_t)va_arg(args, unsigned long long int);
+                        char buffer2[64];
+                        int ind2 = 0;
+                        if(num2 == 0)
+                        {
+                            terminal_putchar('0');
+                        }
+                        while(num2 != 0)
+                        {
+                            buffer2[ind2] = '0' + num2 % 2;
+                            num2 /= 2;
+                            ++ind2;
+                        }
+                        --ind2;
+                        while(ind2 >= 0)
+                        {
+                            terminal_putchar(buffer2[ind2]);
+                            --ind2;
                         }
                         break;
                 }

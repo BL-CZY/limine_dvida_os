@@ -8,7 +8,7 @@ global io_wait
 
 global halt_cpu
 global enable_interrupt
-global disale_interrupt
+global disable_interrupt
 
 section .text
 

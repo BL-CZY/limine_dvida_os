@@ -1,1 +1,1 @@
-qemu-system-x86_64 -cdrom build/image.iso
+qemu-system-x86_64 -m 4G -cdrom build/image.iso
