@@ -113,7 +113,7 @@ build/image.iso: build/bin/$(KERNEL)
 			build/iso_root -o build/image.iso
 	
 	./limine/limine bios-install build/image.iso
- 
+
 init:
 	mkdir -p build
 
@@ -144,3 +144,6 @@ build/obj/%.asm.o: src/%.asm GNUmakefile
 .PHONY: clean
 clean:
 	rm -rf build
+
+#! git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
+#! make -C limine

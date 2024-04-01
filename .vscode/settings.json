@@ -62,6 +62,7 @@
         "asm_utils.h": "c",
         "memory_manager.h": "c",
         "vmm.h": "c",
-        "pmm.h": "c"
+        "pmm.h": "c",
+        "math_utils.h": "c"
     }
 }

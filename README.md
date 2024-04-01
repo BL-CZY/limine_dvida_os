@@ -19,7 +19,11 @@ These are other packages required:<br />
 nasm<br />
 qemu<br />
 xorriso<br />
-gnumake<br /><br />
+gnumake<br />
+you also need to get the limine repo<br />
+<code>git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1</code><br />
+<code>make -C limine</code><br />
+<br />
 
 <h1>Run</h1>
 To run, a raw disk image called storage.img must be created<br />
