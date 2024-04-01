@@ -8,6 +8,7 @@
 #include "lib/utils/asm_utils.h"
 #include "lib/std/stdio.h"
 #include "lib/memory/pmm.h"
+#include "lib/memory/vmm.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -27,6 +28,11 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
 
 static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0
+};
+
+static volatile struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
     .revision = 0
 };
  
@@ -73,7 +79,7 @@ void _start(void) {
     /**
      * do whatever for the setup texts
     */
-    memmap_init(*memmap_request.response);
+    pmm_init(*memmap_request.response, *hhdm_request.response);
     current_io_state = stdin_command;
     printf("root > ");
 

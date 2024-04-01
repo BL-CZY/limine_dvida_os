@@ -9,6 +9,6 @@
 extern uint8_t *bit_map_start;
 extern int bit_map_length;
 
-void memmap_init(struct limine_memmap_response response);
+void pmm_init(struct limine_memmap_response response, struct limine_hhdm_response hhdm);
 
 #endif

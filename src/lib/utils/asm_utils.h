@@ -11,3 +11,6 @@ extern void io_wait(void);
 extern void halt_cpu(void);
 extern void enable_interrupt(void);
 extern void disable_interrupt(void);
+
+extern uint64_t get_cr3(void);
+extern void set_cr3(uint64_t val);

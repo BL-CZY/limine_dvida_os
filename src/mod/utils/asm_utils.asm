@@ -10,6 +10,9 @@ global halt_cpu
 global enable_interrupt
 global disable_interrupt
 
+global get_cr3
+global set_cr3
+
 section .text
 
 outb:
@@ -50,4 +53,13 @@ enable_interrupt:
 
 disable_interrupt:
     cli
+    ret
+
+get_cr3:
+    mov rax, cr3
+    ret
+
+set_cr3:
+    mov rax, rdi
+    mov cr3, rax
     ret

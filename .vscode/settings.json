@@ -59,6 +59,9 @@
         "str_utils.h": "c",
         "memmap.h": "c",
         "handle_utils.h": "c",
-        "asm_utils.h": "c"
+        "asm_utils.h": "c",
+        "memory_manager.h": "c",
+        "vmm.h": "c",
+        "pmm.h": "c"
     }
 }

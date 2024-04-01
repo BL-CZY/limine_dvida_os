@@ -1,26 +1,22 @@
 #include "../../lib/memory/pmm.h"
-#include "../../lib/handlers/handle_utils.h"
+#include "../../lib/memory/vmm.h"
+#include "../../lib/utils/math_utils.h"
+#include "../../lib/utils/mem_utils.h"
+#include "memory_manager.h"
 
 uint8_t *bit_map_start;
 int bit_map_length;
 
-void fill_map(struct limine_memmap_response response) {
+void fill_map(struct limine_memmap_response response, struct limine_hhdm_response hhdm) {
     //not available 1, available 0
-    for(uint64_t i = 0; i < response.entry_count; ++i) {
-        struct limine_memmap_entry entry = *(response.entries)[i];
-        for(uint64_t j = 0; j < entry.length/PAGE_SIZE; ++j) {
-            if(entry.type == LIMINE_MEMMAP_USABLE) {
-                bit_map_start[i * j / 8] = bit_map_start[i * j / 8] | (0x1 << (7 - i * j % 8));
-            } else {
-                bit_map_start[i * j / 8] = bit_map_start[i * j / 8] | ((0xFF & (0x0 << (7 - i * j % 8))));
-            }
-        }
-    }
+    memset(bit_map_start + hhdm.offset, (int)0xff, bit_map_length);
+    printf("%u", *(bit_map_start + hhdm.offset));
 }
 
-void memmap_init(struct limine_memmap_response response) {
+void pmm_init(struct limine_memmap_response response, struct limine_hhdm_response hhdm) {
+    printf("hhdm offset: %x\n", hhdm.offset);
+
     unsigned long long int usable_length = 0;
-    unsigned long long int total_length = 0;
     for(int i = 0; i < (int)response.entry_count; ++i) {
         struct limine_memmap_entry entry = *(response.entries)[i];
         printf("memory entry %x: ", i);
@@ -28,7 +24,6 @@ void memmap_init(struct limine_memmap_response response) {
         if(entry.type == LIMINE_MEMMAP_USABLE) {
             usable_length += entry.length;
         }
-        total_length += entry.length;
     }
     printf("total usable memory: %uGib, %uMib, %uKib\n", usable_length/1024/1024/1024, (usable_length/1024/1024)%1024, (usable_length/1024)%1024);
     printf("total usable pages: %u\n", usable_length/PAGE_SIZE);
@@ -37,7 +32,7 @@ void memmap_init(struct limine_memmap_response response) {
     }
 
     //initialize bitmap
-    bit_map_length = total_length/PAGE_SIZE;
+    bit_map_length = round_up(round_up((response.entries[response.entry_count - 1]->base + response.entries[response.entry_count - 1]->length), PAGE_SIZE), 8);
     int is_success = 0;
     for(int i = 0; i < (int)response.entry_count; ++i) {
         struct limine_memmap_entry entry = *(response.entries)[i];
@@ -45,11 +40,15 @@ void memmap_init(struct limine_memmap_response response) {
             is_success = 1;
             bit_map_start = (uint8_t *)entry.base;
             //fill bitmap
-            fill_map(response);
+            fill_map(response, hhdm);
             break;
         }
     }
     if(!is_success) {
         panic("bit map won't fit");
     }
+}
+
+void vmm_init(struct limine_memmap_response response) {
+    
 }
