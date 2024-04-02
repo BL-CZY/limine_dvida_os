@@ -55,7 +55,7 @@ void isr_handler(interrupt_info_t *info) {
 }
 
 void panic(char *msg) {
-    printf("%ce----------KERNEL PANIC!!!----------%cd");
+    printf("%ce----------KERNEL PANIC!!!----------%cd\n");
     printf(msg);
     disable_interrupt();
     for(;;){

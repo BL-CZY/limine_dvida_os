@@ -1,6 +1,8 @@
 #include "kheap.h"
 #include "../../lib/utils/mem_utils.h"
+#include "../../lib/utils/math_utils.h"
 #include "../../lib/memory/pmm.h"
+#include "../../lib/std/stdio.h"
 
 uint8_t *kheap_start;
 uint8_t *kheap_end;
@@ -13,58 +15,79 @@ void *malloc(size_t size) {
      * every time it will allocate an extra block at the beginning to keep track of the information of this block
     */
 
-    /**
-     * allocations
-     * reuse alloc: allocate from those freed
-     * lazy alloc: allocate from the current location
-     * brute force alloc: search the entire heap
-    */
-
-    //check for lazy alloc
-    //TODO implement reuse alloc and brute force alloc
-    size_t block_num = 1 + (size/4 + (size%4 > 0));
-    int lazy_alloc = 1;
-
-    if(kheap_current_address + size > kheap_end)
-    {
-        lazy_alloc = 0;
+    if(size == 0) {
+        return NULL;
     }
 
-    if(lazy_alloc)
-    {
-        //set the information about the first block
-        *(uint32_t *)kheap_current_address = block_num * 4;
-        void* result = kheap_current_address + 4;
-        kheap_current_address += block_num * 4;
-        return result;
+    size_t current_continuous_block = 0;
+    uint8_t *start = kheap_start;
+
+    for(size_t i = (size_t)kheap_start; i < (size_t)kheap_end; i += 4) {
+        if(*(uint32_t *)i == 0) {
+            ++current_continuous_block;
+            if(current_continuous_block == 1) {
+                start = (uint8_t *)i;
+            } else if (current_continuous_block == round_up(size, 4) + 1) {
+                break;
+            }
+        } else {
+            current_continuous_block = 0;
+        }
     }
 
-    //TODO placeholder, it will be a system interrupt call
-    return 0;
+    if(current_continuous_block != round_up(size, 4) + 1) {
+        //TODO request more pages from the memory manager and retry
+        return NULL;
+    }
+
+    *(uint32_t *)start = current_continuous_block;
+    return (void *)(start + 4);
 }
 
 
 void free(void *target) {
+    //null detection
+    if(target == NULL) {
+        return;
+    }
+
     void *start = target - 4;
+
+    //if it's already been removed
+    if(*(uint32_t *)start == 0) {
+        return;
+    }
+
+    //removing it
     size_t size = (size_t)(*(uint32_t *)start);
     for(size_t i = 0; i < size; ++i)
     {
-        *(char *)(start + i) = '\0';
+        *(uint32_t *)(start + i) = 0;
     }
 }
 
 void* realloc(void *target, size_t new_size) {
+    //null detection
+    if(target == NULL) {
+        return malloc(new_size);
+    }
+
     void *start = target;
-    size_t size = *(size_t *)(start - 4);
-    void *new_address = malloc(new_size);
-    memcpy(start, new_address, size);
-    free(start);
+    uint32_t old_size = *(uint32_t *)(start - 4);
+    void *new_address = malloc(new_size * 4);
+    if(new_address == NULL) {
+        return NULL;
+    }
+
+    memmove(new_address, start, old_size < new_size ? old_size : new_size);
+    free(target);
     return new_address;
 }
 
 void kheap_init() {
-    //10 pages for kernel heap
-    kheap_start = allocate_continuous_pages(10);
-    kheap_end = kheap_start + 10 * PAGE_SIZE;
+    //4 pages for the initial kernel heap
+    kheap_start = allocate_continuous_pages(4);
+    kheap_end = kheap_start + 4 * PAGE_SIZE;
     kheap_current_address = kheap_start;
+    printf("kheap start: %x, kheap end: %x\n", kheap_start, kheap_end);
 }

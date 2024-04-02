@@ -21,24 +21,33 @@ void bit_map_free_bit(uint64_t bit) {
     bit_map_start[bit/8] &= ~(0x1 << (7 - bit%8));
 }
 
-void fill_map(struct limine_memmap_response response, struct limine_hhdm_response hhdm, uint64_t bit_map_entry) {
+void fill_map(struct limine_memmap_response response, uint64_t bit_map_entry) {
     //not available 1, available 0
     memset(bit_map_start, (int)0xff, bit_map_length);
-    
+
     //free usable pages
     for(uint64_t i = 0; i < (uint64_t)response.entry_count; ++i) {
+        struct limine_memmap_entry entry = *(response.entries)[i];
+
         if(response.entries[i]->type == LIMINE_MEMMAP_USABLE) {
-            memset((uint8_t *)((response.entries[i]->base / 8) + hhdm.offset), (int)0x00, response.entries[i]->length/PAGE_SIZE/8);
+            for(uint64_t j = 0; j < entry.length/PAGE_SIZE; ++j) {
+                bit_map_free_bit((entry.base/PAGE_SIZE) + j);
+            }
         }
 
         if(i == bit_map_entry) {
             //set the pages used for the map
-            memset((uint8_t *)((response.entries[i]->base / 8) + hhdm.offset), (int)0xff, round_up(bit_map_length/PAGE_SIZE, 8));
+            for(uint64_t j = 0; j < bit_map_length/PAGE_SIZE; ++j) {
+                bit_map_allocate_bit((entry.base/PAGE_SIZE) + j);
+            }
         }
     }
 }
 
 void pmm_init(struct limine_memmap_response response, struct limine_hhdm_response hhdm) {
+    if(hhdm.offset == 0 || (uint64_t)response.entries < 1) {
+        panic("no memmap or hhdm");
+    }
     printf("hhdm offset: %x\n", hhdm.offset);
     hhdm_offset = hhdm.offset;
 
@@ -69,7 +78,7 @@ void pmm_init(struct limine_memmap_response response, struct limine_hhdm_respons
             is_success = 1;
             bit_map_start = (uint8_t *)(entry.base + hhdm.offset);
             //fill bitmap
-            fill_map(response, hhdm, i);
+            fill_map(response, i);
             break;
         }
     }
@@ -80,13 +89,14 @@ void pmm_init(struct limine_memmap_response response, struct limine_hhdm_respons
 }
 
 void *allocate_continuous_pages(size_t num) {
+
     uint64_t usable_pages_in_segment = 0;
     uint64_t start = 0;
     uint64_t end = 0;
 
-    for(uint64_t i = 0; i < bit_map_length; ++i) {
+    for(uint64_t i = 0; i < bit_map_length * 8; ++i) {
         if(bit_map_get_bit(i) == 0) {
-            usable_pages_in_segment++;
+            ++usable_pages_in_segment;
             if(usable_pages_in_segment == 1) {
                 start = i; // Start of the current segment
             }

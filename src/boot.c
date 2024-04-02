@@ -79,8 +79,6 @@ void _start(void) {
      * do whatever for the setup texts
     */
     pmm_init(*memmap_request.response, *hhdm_request.response);
-    current_io_state = stdin_command;
-    printf("root > ");
 
     kernel_main();
  
