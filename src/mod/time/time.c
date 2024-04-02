@@ -29,3 +29,10 @@ int register_update_function(void (*func)()) {
 void unregister_update_function(int index) {
     list_info[index] = 0;
 }
+
+void sleep(int time) {
+    uint64_t temp = global_timer + time;
+    while(temp >= global_timer) {
+        asm("hlt");
+    }
+}

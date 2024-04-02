@@ -8,6 +8,7 @@
 #include "lib/utils/asm_utils.h"
 #include "lib/std/stdio.h"
 #include "lib/memory/pmm.h"
+#include "lib/file_system/file_system.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.

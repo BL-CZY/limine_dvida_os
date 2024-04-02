@@ -14,4 +14,6 @@ void on_update();
 int register_update_function(void (*func)());
 void unregister_update_function(int index);
 
+void sleep(int time);
+
 #endif

@@ -38,9 +38,9 @@ inw:
     ret
 
 io_wait:
-    mov rdi, 0x80
-    mov rsi, 0
-    call outb
+    mov dx, 0x80
+    mov al, 0
+    out dx, al
     ret
 
 halt_cpu:
