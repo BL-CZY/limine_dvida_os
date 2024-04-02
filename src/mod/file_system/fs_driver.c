@@ -38,6 +38,7 @@ int read_sector(uint64_t lba) {
 
     // Issue the read command
     outb(ATA_COMMAND_PORT, ATA_CMD_READ_SECTORS);
+
     if(wait_for_disk())
     {
         return 1; //failed
