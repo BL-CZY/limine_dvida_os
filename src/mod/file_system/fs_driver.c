@@ -23,7 +23,6 @@ int wait_for_disk() {
 int read_sector(uint64_t lba) {
     sleep(1);
     //no error
-    outb(ATA_ERROR_PORT, 0);
     // Select drive (Assuming drive 0, replace with appropriate value if needed)
     // set 111 to enter LBA mode
     outb(ATA_DRIVE_PORT, (uint8_t)(0xE0 | ((lba >> 24) & 0x0F)));
@@ -45,8 +44,6 @@ int read_sector(uint64_t lba) {
     }
 
     sleep(1);
-
-    return 0;
 
     // Read data from the data port
     for(int i = 0; i < 512; i += 2)

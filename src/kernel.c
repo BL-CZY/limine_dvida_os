@@ -6,11 +6,11 @@
 
 void kernel_main() {
     kheap_init();
-    // read_sector(0);
+    read_sector(0);
 
-    // for(int i = 0; i < 512; ++i) {
-    //     printf("%u", sector_buffer[i]);
-    // }
+    for(int i = 0; i < 512; ++i) {
+        printf("%u", sector_buffer[i]);
+    }
 
     current_io_state = stdin_command;
     printf("root > ");
