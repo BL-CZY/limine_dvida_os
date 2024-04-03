@@ -121,8 +121,8 @@ void pic_config(uint8_t offset_pic1, uint8_t offset_pic2)
     io_wait();
 
     //clear registers
-    outb(PIC1_DATA_PORT, 0);
-    outb(PIC2_DATA_PORT, 0);
+    outb(PIC1_DATA_PORT, 0b11111000);
+    outb(PIC2_DATA_PORT, 0b11111111);
 }
 
 //mask a port
