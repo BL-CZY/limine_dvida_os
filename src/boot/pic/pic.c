@@ -6,7 +6,7 @@
 #define PIC1_COMMAND_PORT 0x20
 #define PIC1_DATA_PORT 0x21
 #define PIC2_COMMAND_PORT 0xA0
-#define PIC2_DATA_PORT 0xA2
+#define PIC2_DATA_PORT 0xA1
 
 /**
  * ICW1 -- initialization control word
@@ -115,14 +115,16 @@ void pic_config(uint8_t offset_pic1, uint8_t offset_pic2)
     io_wait();
 
     //ICW4
-    outb(PIC1_DATA_PORT, 0b00000001);
+    outb(PIC1_DATA_PORT, 0b00000101);
     io_wait();
     outb(PIC2_DATA_PORT, 0b00000001);
     io_wait();
 
     //clear registers
-    outb(PIC1_DATA_PORT, 0b11111000);
-    outb(PIC2_DATA_PORT, 0b11111111);
+    outb(PIC1_DATA_PORT, 0);
+    io_wait();
+    outb(PIC2_DATA_PORT, 0);
+    io_wait();
 }
 
 //mask a port
