@@ -1,5 +1,5 @@
-#ifndef FS_DRIVER_H
-#define FS_DRIVER_H
+#ifndef PATA_DRIVER_H
+#define PATA_DRIVER_H
 
 #include <stdint.h>
 #include "../../lib/utils/asm_utils.h"
