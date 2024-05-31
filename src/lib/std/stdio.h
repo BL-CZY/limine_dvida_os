@@ -14,7 +14,7 @@ typedef enum io_state
 extern io_state_t current_io_state;
 void terminal_init(void *addr, const uint64_t width, const uint64_t height, const int blink_speed);
 void terminal_set_resolution(const uint64_t width, const uint64_t height);
-void printf(char* format, ...);
+void kprintf(char *format, ...);
 void erasef(size_t num);
 void terminal_clear();
 

@@ -89,5 +89,5 @@ void kheap_init() {
     kheap_start = allocate_continuous_pages(4);
     kheap_end = kheap_start + 4 * PAGE_SIZE;
     kheap_current_address = kheap_start;
-    printf("kheap start: %x, kheap end: %x\n", kheap_start, kheap_end);
+    kprintf("kheap start: %x, kheap end: %x\n", kheap_start, kheap_end);
 }

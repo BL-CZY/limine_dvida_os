@@ -171,22 +171,22 @@ void process_stdin_common(keycode keycode, char* down, char* up)
         {
             if(keyboard[keycode_left_shift])
             {
-                printf(up);
+                kprintf(up);
             }
             else
             {
-                printf(down);
+                kprintf(down);
             }
         }
         else
         {
             if(keyboard[keycode_left_shift])
             {
-                printf(down);
+                kprintf(down);
             }
             else
             {
-                printf(up);
+                kprintf(up);
             }
         }
     }
@@ -194,11 +194,11 @@ void process_stdin_common(keycode keycode, char* down, char* up)
     {
         if(keyboard[keycode_left_shift])
         {
-            printf(up);
+            kprintf(up);
         }
         else
         {
-            printf(down);
+            kprintf(down);
         }
     }
 }
@@ -241,7 +241,7 @@ void process_stdin_command(keycode keycode, char* down, char* up)
         if(!keyboard[keycode_left_shift])
         {
             //end of command
-            printf("\n");
+            kprintf("\n");
             end_of_command();
             return;
         }
@@ -250,7 +250,7 @@ void process_stdin_command(keycode keycode, char* down, char* up)
     if(command_buffer_index == 50)
     {
         //end of command
-        printf("\n");
+        kprintf("\n");
         end_of_command();
         return;
     }

@@ -16,10 +16,10 @@ void echo()
             break;
         }
         char temp[2] = {command_buffer[i], '\0'};
-        printf(temp);
+        kprintf(temp);
         ++i;
     }
-    printf("\n");
+    kprintf("\n");
 }
 
 void clear()
@@ -29,10 +29,10 @@ void clear()
 
 void help()
 {
-    printf("Commands Available:\n");
-    printf("echo - Echo a string to stdout\n");
-    printf("clear - Clear the terminal output\n");
-    printf("help - Display list of available commands\n");
+    kprintf("Commands Available:\n");
+    kprintf("echo - Echo a string to stdout\n");
+    kprintf("clear - Clear the terminal output\n");
+    kprintf("help - Display list of available commands\n");
 }
 
 void execute_command()
@@ -52,9 +52,9 @@ void execute_command()
     }
     else
     {
-        printf("Command not found.\n");
+        kprintf("Command not found.\n");
     }
     command_buffer_index = 0;
-    printf("root > ");
+    kprintf("root > ");
     current_io_state = stdin_command;
 }

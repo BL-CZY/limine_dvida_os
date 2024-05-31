@@ -7,7 +7,8 @@ void kernel_main() {
     kheap_init();
 
     current_io_state = stdin_command;
-    printf("root > ");
+    kprintf("root > ");
+    
     for(;;) {
         asm("hlt");
     }

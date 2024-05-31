@@ -46,25 +46,25 @@ void fill_map(struct limine_memmap_response response, uint64_t bit_map_entry) {
 
 void pmm_init(struct limine_memmap_response response, struct limine_hhdm_response hhdm) {
     if(hhdm.offset == 0 || (uint64_t)response.entries < 1) {
-        panic("no memmap or hhdm");
+        kpanic("no memmap or hhdm");
     }
-    printf("hhdm offset: %x\n", hhdm.offset);
+    kprintf("hhdm offset: %x\n", hhdm.offset);
     hhdm_offset = hhdm.offset;
 
     //pruint64_t out the info
     uint64_t usable_length = 0;
     for(uint64_t i = 0; i < (uint64_t)response.entry_count; ++i) {
         struct limine_memmap_entry entry = *(response.entries)[i];
-        printf("memory entry %x: ", i);
-        printf("base: %x length: %x type: %x \n", entry.base, entry.length, entry.type);
+        kprintf("memory entry %x: ", i);
+        kprintf("base: %x length: %x type: %x \n", entry.base, entry.length, entry.type);
         if(entry.type == LIMINE_MEMMAP_USABLE) {
             usable_length += entry.length;
         }
     }
-    printf("total usable memory: %uGib, %uMib, %uKib\n", usable_length/1024/1024/1024, (usable_length/1024/1024)%1024, (usable_length/1024)%1024);
-    printf("total usable pages: %u\n", usable_length/PAGE_SIZE);
+    kprintf("total usable memory: %uGib, %uMib, %uKib\n", usable_length/1024/1024/1024, (usable_length/1024/1024)%1024, (usable_length/1024)%1024);
+    kprintf("total usable pages: %u\n", usable_length/PAGE_SIZE);
     if(usable_length/1024/1024/1024 == 0) {
-        panic("no enough ram");
+        kpanic("no enough ram");
     }
 
     //initialize bitmap, the length is round up always
@@ -84,7 +84,7 @@ void pmm_init(struct limine_memmap_response response, struct limine_hhdm_respons
     }
 
     if(!is_success) {
-        panic("bit map won't fit");
+        kpanic("bit map won't fit");
     }
 }
 
@@ -110,7 +110,7 @@ void *allocate_continuous_pages(size_t num) {
     }
 
     if(usable_pages_in_segment != num) {
-        panic("Not enough memory");
+        kpanic("Not enough memory");
         return NULL;
     }
 

@@ -11,7 +11,7 @@ typedef struct interrupt_info
 } interrupt_info_t;
 
 void page_fault(interrupt_info_t *info) {
-    printf("page fault: %b\n", info->err);
+    kprintf("page fault: %b\n", info->err);
 }
 
 void irq_0() {
@@ -32,7 +32,7 @@ void irq_handler(interrupt_info_t *info) {
             irq_1();
             break;
         default:
-            printf("unhandled irq number %u\n", info->int_num - 32);
+            kprintf("unhandled irq number %u\n", info->int_num - 32);
             break;
     }
     pic_send_end_of_interrupt(info->int_num - 32);
@@ -49,14 +49,14 @@ void isr_handler(interrupt_info_t *info) {
             page_fault(info);
             break;
         default:
-            printf("unhandled isr number %u\n", info->int_num);
+            kprintf("unhandled isr number %u\n", info->int_num);
             break;
     }
 }
 
-void panic(char *msg) {
-    printf("%ce----------KERNEL PANIC!!!----------%cd\n");
-    printf(msg);
+void kpanic(char *msg) {
+    kprintf("%ce----------KERNEL PANIC!!!----------%cd\n");
+    kprintf(msg);
     disable_interrupt();
     for(;;){
         halt_cpu();
