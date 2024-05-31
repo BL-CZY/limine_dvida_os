@@ -79,7 +79,7 @@ void _start(void) {
     /**
      * do whatever for the setup texts
     */
-    pmm_init(*memmap_request.response, *hhdm_request.response);
+    pmm_init(memmap_request.response, hhdm_request.response);
 
     kernel_main();
  

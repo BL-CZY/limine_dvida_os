@@ -21,44 +21,46 @@ void bit_map_free_bit(uint64_t bit) {
     bit_map_start[bit/8] &= ~(0x1 << (7 - bit%8));
 }
 
-void fill_map(struct limine_memmap_response response, uint64_t bit_map_entry) {
+void fill_map(struct limine_memmap_response *response) {
     //not available 1, available 0
     memset(bit_map_start, (int)0xff, bit_map_length);
 
     //free usable pages
-    for(uint64_t i = 0; i < (uint64_t)response.entry_count; ++i) {
-        struct limine_memmap_entry entry = *(response.entries)[i];
+    for(uint64_t i = 0; i < (uint64_t)response->entry_count; ++i) {
+        struct limine_memmap_entry *entry = (response->entries)[i];
 
-        if(response.entries[i]->type == LIMINE_MEMMAP_USABLE) {
-            for(uint64_t j = 0; j < entry.length/PAGE_SIZE; ++j) {
-                bit_map_free_bit((entry.base/PAGE_SIZE) + j);
+        if(response->entries[i]->type == LIMINE_MEMMAP_USABLE) {
+            for(uint64_t j = 0; j < entry->length/PAGE_SIZE; ++j) {
+                bit_map_free_bit((entry->base/PAGE_SIZE) + j);
             }
+            kprintf("freed bits\n");
         }
 
-        if(i == bit_map_entry) {
+        if(response->entries[i]->base + hhdm_offset == bit_map_start) {
             //set the pages used for the map
             for(uint64_t j = 0; j < bit_map_length/PAGE_SIZE; ++j) {
-                bit_map_allocate_bit((entry.base/PAGE_SIZE) + j);
+                bit_map_allocate_bit((entry->base/PAGE_SIZE) + j);
             }
+            kprintf("allocated bits for the bit map\n");
         }
     }
 }
 
-void pmm_init(struct limine_memmap_response response, struct limine_hhdm_response hhdm) {
-    if(hhdm.offset == 0 || (uint64_t)response.entries < 1) {
+void pmm_init(struct limine_memmap_response *response, struct limine_hhdm_response *hhdm) {
+    if(hhdm->offset == 0 || (uint64_t)response->entries < 1) {
         kpanic("no memmap or hhdm");
     }
-    kprintf("hhdm offset: %x\n", hhdm.offset);
-    hhdm_offset = hhdm.offset;
+    kprintf("hhdm offset: %x\n", hhdm->offset);
+    hhdm_offset = hhdm->offset;
 
-    //pruint64_t out the info
+    //print out the info
     uint64_t usable_length = 0;
-    for(uint64_t i = 0; i < (uint64_t)response.entry_count; ++i) {
-        struct limine_memmap_entry entry = *(response.entries)[i];
+    for(size_t i = 0; i < (size_t)response->entry_count; ++i) {
+        struct limine_memmap_entry *entry = (response->entries)[i];
         kprintf("memory entry %x: ", i);
-        kprintf("base: %x length: %x type: %x \n", entry.base, entry.length, entry.type);
-        if(entry.type == LIMINE_MEMMAP_USABLE) {
-            usable_length += entry.length;
+        kprintf("base: %x length: %x type: %x \n", entry->base, entry->length, entry->type);
+        if(entry->type == LIMINE_MEMMAP_USABLE) {
+            usable_length += entry->length;
         }
     }
     kprintf("total usable memory: %uGib, %uMib, %uKib\n", usable_length/1024/1024/1024, (usable_length/1024/1024)%1024, (usable_length/1024)%1024);
@@ -68,17 +70,20 @@ void pmm_init(struct limine_memmap_response response, struct limine_hhdm_respons
     }
 
     //initialize bitmap, the length is round up always
-    bit_map_length = round_up(round_up((response.entries[response.entry_count - 1]->base + response.entries[response.entry_count - 1]->length), PAGE_SIZE), 8);
+    bit_map_length = round_up(round_up((response->entries[response->entry_count - 1]->base + response->entries[response->entry_count - 1]->length), PAGE_SIZE), 8);
     uint64_t is_success = 0;
 
+    kprintf("bit map length: %u\n", bit_map_length);
+
     //find a usable chunk
-    for(uint64_t i = 0; i < (uint64_t)response.entry_count; ++i) {
-        struct limine_memmap_entry entry = *(response.entries)[i];
-        if((uint64_t)entry.length >= bit_map_length) {
+    for(size_t i = 0; i < (size_t)response->entry_count; ++i) {
+        struct limine_memmap_entry *entry = (response->entries)[i];
+        if((uint64_t)entry->length >= bit_map_length) {
             is_success = 1;
-            bit_map_start = (uint8_t *)(entry.base + hhdm.offset);
+            bit_map_start = (uint8_t *)(entry->base + hhdm->offset);
+            kprintf("bit map would start at: %x\n", bit_map_start);
             //fill bitmap
-            fill_map(response, i);
+            fill_map(response);
             break;
         }
     }
