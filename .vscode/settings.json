@@ -66,6 +66,7 @@
         "math_utils.h": "c",
         "file_system.h": "c",
         "time.h": "c",
-        "fs_driver.h": "c"
+        "fs_driver.h": "c",
+        "partition_utils.h": "c"
     }
 }

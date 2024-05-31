@@ -261,7 +261,7 @@ void kprintf(char *format, ...) {
     fg_color = 0xFFFFFF;
     va_list args;
     va_start(args, format);
-    enum PrintState print_state = Print;
+    enum print_state print_state = Print;
     
     for(size_t i = 0; i < length; ++i) {
         char c = format[i];

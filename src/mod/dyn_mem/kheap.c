@@ -8,7 +8,7 @@ uint8_t *kheap_start;
 uint8_t *kheap_end;
 uint8_t *kheap_current_address;
 
-void *malloc(size_t size) {
+void *kmalloc(size_t size) {
     /**
      * the block structure:
      * the heap is divided into 4 bytes blocks
@@ -45,7 +45,7 @@ void *malloc(size_t size) {
 }
 
 
-void free(void *target) {
+void kfree(void *target) {
     //null detection
     if(target == NULL) {
         return;
@@ -66,21 +66,21 @@ void free(void *target) {
     }
 }
 
-void* realloc(void *target, size_t new_size) {
+void *krealloc(void *target, size_t new_size) {
     //null detection
     if(target == NULL) {
-        return malloc(new_size);
+        return kmalloc(new_size);
     }
 
     void *start = target;
     uint32_t old_size = *(uint32_t *)(start - 4);
-    void *new_address = malloc(new_size * 4);
+    void *new_address = kmalloc(new_size * 4);
     if(new_address == NULL) {
         return NULL;
     }
 
     memmove(new_address, start, old_size < new_size ? old_size : new_size);
-    free(target);
+    kfree(target);
     return new_address;
 }
 

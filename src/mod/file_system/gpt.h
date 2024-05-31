@@ -16,7 +16,7 @@ typedef struct gpt_table {
     gpt_table_entry_t *entries;
 } gpt_table_t;
 
-typedef struct efi_header {
+typedef struct gpt_header {
     uint8_t header[8];
     uint32_t revision;
     uint32_t header_size;
@@ -31,6 +31,6 @@ typedef struct efi_header {
     uint32_t entry_num;
     uint32_t entry_size;
     uint32_t crc32;
-} efi_header_t;
+} gpt_header_t;
 
 #endif

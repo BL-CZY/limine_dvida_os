@@ -7,25 +7,26 @@ uint8_t *bit_map_start;
 uint64_t bit_map_length;
 uint64_t hhdm_offset;
 
-uint64_t bit_map_get_bit(uint64_t num) {
+// get the bit
+bool bit_map_get_bit(uint64_t num) {
     return (bit_map_start[num/8] >> (7 - num%8)) & 0x1;
 }
 
-//set to 1
+// set to 1
 void bit_map_allocate_bit(uint64_t bit) {
     bit_map_start[bit/8] = bit_map_start[bit/8] | (0x1 << (7 - bit%8));
 }
 
-//set to 0
+// set to 0
 void bit_map_free_bit(uint64_t bit) {
     bit_map_start[bit/8] &= ~(0x1 << (7 - bit%8));
 }
 
 void fill_map(struct limine_memmap_response *response) {
-    //not available 1, available 0
+    // not available 1, available 0
     memset(bit_map_start, (int)0xff, bit_map_length);
 
-    //free usable pages
+    // free usable pages
     for(uint64_t i = 0; i < (uint64_t)response->entry_count; ++i) {
         struct limine_memmap_entry *entry = (response->entries)[i];
 
@@ -37,7 +38,7 @@ void fill_map(struct limine_memmap_response *response) {
         }
 
         if(response->entries[i]->base + hhdm_offset == bit_map_start) {
-            //set the pages used for the map
+            // set the pages used for the map
             for(uint64_t j = 0; j < bit_map_length/PAGE_SIZE; ++j) {
                 bit_map_allocate_bit((entry->base/PAGE_SIZE) + j);
             }
@@ -53,7 +54,7 @@ void pmm_init(struct limine_memmap_response *response, struct limine_hhdm_respon
     kprintf("hhdm offset: %x\n", hhdm->offset);
     hhdm_offset = hhdm->offset;
 
-    //print out the info
+    // print out the info
     uint64_t usable_length = 0;
     for(size_t i = 0; i < (size_t)response->entry_count; ++i) {
         struct limine_memmap_entry *entry = (response->entries)[i];

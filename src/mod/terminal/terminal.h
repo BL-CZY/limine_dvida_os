@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-enum PrintState {
+enum print_state {
     Print,
     Format,
     Color,
