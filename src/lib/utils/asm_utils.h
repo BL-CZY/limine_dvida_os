@@ -1,5 +1,8 @@
 //implemented in mod/utils/asm_utils.asm
 
+#ifndef ASM_UTILS
+#define ASM_UTILS
+
 #include <stdint.h>
 
 extern void outb(uint16_t port, uint8_t value);
@@ -14,3 +17,5 @@ extern void disable_interrupt(void);
 
 extern uint64_t get_cr3(void);
 extern void set_cr3(uint64_t val);
+
+#endif
