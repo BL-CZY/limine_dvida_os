@@ -33,3 +33,25 @@ bool are_buffers_same(uint8_t *buffer1, uint8_t *buffer2, size_t length) {
     }
     return true;
 }
+
+void extend_buffer(uint8_t *buffer1, uint8_t *buffer2, size_t start, size_t length) {
+    for(size_t i = start; i < start + length; ++i) {
+        buffer1[i] = buffer2[i - start];
+    }
+}
+
+void *uint8_to_buffer(uint8_t input, uint8_t *result) {
+    result[0] = input;
+    return result;
+}
+
+void *uint16_to_buffer(uint16_t input, uint8_t *result) {
+    result[0] = (uint8_t)(input >> 8);
+    result[1] = (uint8_t)(input);
+    return result;
+}
+
+void *uint32_to_buffer(uint32_t input) {
+}
+
+void *uint64_to_buffer(uint64_t input);
