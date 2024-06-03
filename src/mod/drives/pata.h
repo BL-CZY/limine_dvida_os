@@ -2,6 +2,7 @@
 #define PATA_DRIVER_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "../../lib/utils/asm_utils.h"
 #include "../../lib/time/time.h"
 
@@ -23,7 +24,6 @@
 
 extern uint8_t sector_buffer[512];
 
-int wait_for_disk();
 int read_sector(uint64_t lba);
 int write_sector(uint64_t lba);
 

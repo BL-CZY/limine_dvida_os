@@ -11,7 +11,7 @@ bool is_gpt_present() {
         if(sector_buffer[i] != GPT_EFI_HEADER[i]) {
             return false;
         }
-    } 
+    }
     
     return true;
 }

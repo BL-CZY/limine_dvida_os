@@ -4,11 +4,9 @@
 
 uint8_t sector_buffer[512];
 
-int wait_for_disk() {
-    uint32_t time = 0;
-    // Poll for completion 
-    while ((inb(ATA_STATUS_PORT) & 0x80) != 0x80)
-    {
+int read_sector(uint64_t lba) {
+    int time = 0;
+    while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
         ++time;
         if(time > 100000)
         {
@@ -16,13 +14,6 @@ int wait_for_disk() {
             return 1;
         }
     }
-    //no error
-    return 0;
-}
-
-int read_sector(uint64_t lba) {
-    sleep(1);
-    //no error
     // Select drive (Assuming drive 0, replace with appropriate value if needed)
     // set 111 to enter LBA mode
     outb(ATA_DRIVE_PORT, (uint8_t)(0xE0 | ((lba >> 24) & 0x0F)));
@@ -37,13 +28,17 @@ int read_sector(uint64_t lba) {
 
     // Issue the read command
     outb(ATA_COMMAND_PORT, ATA_CMD_READ_SECTORS);
-
-    if(wait_for_disk())
+    
+    time = 0;
+    while((inb(ATA_STATUS_PORT) & 0b00001000) != 0b00001000 || (inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000)
     {
-        return 1; //failed
+        ++time;
+        if(time > 100000)
+        {
+            //error timeout
+            return 1;
+        }
     }
-
-    sleep(1);
 
     // Read data from the data port
     for(int i = 0; i < 512; i += 2)
@@ -57,8 +52,15 @@ int read_sector(uint64_t lba) {
 }
 
 int write_sector(uint64_t lba) {
-    sleep(1);
-    //no error
+    int time = 0;
+    while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
+        ++time;
+        if(time > 100000)
+        {
+            //error timeout
+            return 1;
+        }
+    }
     // Select drive (Assuming drive 0, replace with appropriate value if needed)
     // set 111 to enter LBA mode
     outb(ATA_DRIVE_PORT, (uint8_t)(0xE0 | ((lba >> 24) & 0x0F)));
@@ -74,13 +76,16 @@ int write_sector(uint64_t lba) {
     // Issue the read command
     outb(ATA_COMMAND_PORT, ATA_CMD_WRITE_SECTORS);
 
-    // if(wait_for_disk())
-    // {
-        // printf("failed");
-        // return 1; //failed
-    // }
-
-    sleep(1);
+    time = 0;
+    while((inb(ATA_STATUS_PORT) & 0b00001000) != 0b00001000 || (inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000)
+    {
+        ++time;
+        if(time > 100000)
+        {
+            //error timeout
+            return 1;
+        }
+    }
 
     // write data to the data port
     for(int i = 0; i < 512; i += 2)

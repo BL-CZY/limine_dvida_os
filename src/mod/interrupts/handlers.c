@@ -22,6 +22,8 @@ void irq_1() {
     process_key(inb(0x60));
 }
 
+void irq_14() {}
+
 void irq_handler(interrupt_info_t *info) {
     switch(info->int_num - 32)
     {        
@@ -30,6 +32,9 @@ void irq_handler(interrupt_info_t *info) {
             break;
         case 1:
             irq_1();
+            break;
+        case 14:
+            irq_14();
             break;
         default:
             kprintf("unhandled irq number %u\n", info->int_num - 32);

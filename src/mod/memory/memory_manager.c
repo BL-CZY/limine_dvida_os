@@ -37,7 +37,7 @@ void fill_map(struct limine_memmap_response *response) {
             kprintf("freed bits\n");
         }
 
-        if(response->entries[i]->base + hhdm_offset == bit_map_start) {
+        if((uint8_t *)(response->entries[i]->base + hhdm_offset) == bit_map_start) {
             // set the pages used for the map
             for(uint64_t j = 0; j < bit_map_length/PAGE_SIZE; ++j) {
                 bit_map_allocate_bit((entry->base/PAGE_SIZE) + j);

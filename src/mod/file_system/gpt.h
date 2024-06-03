@@ -19,7 +19,7 @@ typedef struct gpt_table {
 typedef struct gpt_efi_header {
     uint8_t header[8];
     uint8_t revision[4];
-    uint32_t header_size;
+    uint32_t header_size; //in little endian
     uint32_t check_sum;
     uint32_t reserved;
     uint64_t header_lba_address;
