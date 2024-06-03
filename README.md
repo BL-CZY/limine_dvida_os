@@ -1,6 +1,6 @@
 <h1>Dvida OS</h1>
 
-This is a simple operating system that I am developing based on the osdev wiki
+Hi, This is a simple operating system that I am developing based on the osdev wiki
 
 <h1>Build</h1>
 
