@@ -24,7 +24,7 @@
 
 extern uint8_t sector_buffer[512];
 
-int read_sector(uint64_t lba);
-int write_sector(uint64_t lba);
+int pio_read_sector(uint64_t lba);
+int pio_write_sector(uint64_t lba);
 
 #endif

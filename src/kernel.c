@@ -16,8 +16,8 @@ void kernel_main() {
         sector_buffer[i] = 3;
     }
 
-    kprintf("%u ", write_sector(0));
-    kprintf("%u ", write_sector(0));
+    kprintf("%u ", pio_write_sector(0));
+    kprintf("%u ", pio_write_sector(0));
     
     for(;;) {
         asm("hlt");

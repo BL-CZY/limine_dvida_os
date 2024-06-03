@@ -4,7 +4,7 @@
 
 uint8_t sector_buffer[512];
 
-int read_sector(uint64_t lba) {
+int pio_read_sector(uint64_t lba) {
     int time = 0;
     while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
         ++time;
@@ -51,7 +51,7 @@ int read_sector(uint64_t lba) {
     return 0;
 }
 
-int write_sector(uint64_t lba) {
+int pio_write_sector(uint64_t lba) {
     int time = 0;
     while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
         ++time;
