@@ -2,3 +2,4 @@ build/
 storage.img
 font_tester.cpp
 font_tester
+.vscode/
