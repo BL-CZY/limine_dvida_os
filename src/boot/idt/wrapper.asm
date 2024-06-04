@@ -106,8 +106,7 @@ isr_common:
     pop rbx
     pop rax
 
-    pop rax
-    pop rax
+    add rsp, 16 ; clear the previously pushed values
     iretq
 
 ; this file is auto-generated
