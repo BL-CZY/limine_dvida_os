@@ -1,5 +1,5 @@
 #include "gpt.h"
-#include "../../lib/file_system/partition_utils.h"
+#include "../../lib/file_system/partition.h"
 
 const uint8_t GPT_EFI_HEADER[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
 

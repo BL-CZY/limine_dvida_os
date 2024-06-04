@@ -2,7 +2,7 @@
 #define MEMORY_MANAGER_H
 
 #include <stdbool.h>
-#include "../../lib/handlers/handle_utils.h"
+#include "../../lib/utils/handle_utils.h"
 #include "../../limine.h"
 
 bool bit_map_get_bit(uint64_t num);

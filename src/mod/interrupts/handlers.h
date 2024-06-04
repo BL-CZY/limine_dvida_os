@@ -5,7 +5,7 @@
 #include "../../lib/std/keyboard.h"
 #include "../../lib/utils/pic_utils.h"
 #include "../../lib/utils/asm_utils.h"
-#include "../../lib/handlers/handle_utils.h"
+#include "../../lib/utils/handle_utils.h"
 
 typedef struct interrupt_info interrupt_info_t;
 

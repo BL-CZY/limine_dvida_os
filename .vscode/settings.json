@@ -68,6 +68,7 @@
         "time.h": "c",
         "fs_driver.h": "c",
         "partition_utils.h": "c",
-        "pata.h": "c"
+        "pata.h": "c",
+        "handlers.h": "c"
     }
 }

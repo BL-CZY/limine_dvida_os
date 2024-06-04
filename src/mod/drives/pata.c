@@ -6,8 +6,8 @@ uint8_t sector_buffer[512];
 uint16_t drive_info_buffer[256];
 
 bool is_lba48_supported;
-uint32_t highest_lba28_sector;
-uint64_t highest_lba48_sector;
+uint32_t lba28_sector_count;
+uint64_t lba48_sector_count;
 
 /**
  * function error codes:
@@ -63,8 +63,26 @@ int identify_ata_drive(uint16_t drive_port) {
     }
 
     if((drive_info_buffer[83] & 0b0000010000000000) == 0b0000010000000000) {
-        kprintf("lba48 is supported by the drive\n");
         is_lba48_supported = true;
+    }
+
+    lba28_sector_count = ((uint32_t)(drive_info_buffer[60]) | (uint32_t)(drive_info_buffer[61]) << 16) - 1;
+    lba48_sector_count = ((uint64_t)(drive_info_buffer[100]) | ((uint64_t)(drive_info_buffer[101])) << 16 | ((uint64_t)(drive_info_buffer[102])) << 32 | ((uint64_t)(drive_info_buffer[103])) << 48) - 1;
+
+    // the log part
+
+    kprintf("ATA drive identified on port %x\n", drive_port);
+
+    if(is_lba48_supported) {
+        kprintf("lba48 is supported by the drive\n");
+    } else {
+        kprintf("lba48 is not supported by the drive\n");
+    }
+
+    kprintf("addressable sectors for lba28 count: %x\n", lba28_sector_count);
+
+    if(is_lba48_supported) {
+        kprintf("addressable sectors for lba48 count: %x\n", lba48_sector_count);
     }
 
     return 0;
@@ -189,4 +207,24 @@ int pio_write_sector(uint64_t lba) {
     }
 
     return 0;
+}
+
+void ata_drive_init() {
+    int temp = identify_ata_drive(ATA_DRIVE_PORT);
+    if(temp != 0) {
+        switch(temp)
+        {
+            case 1:
+                kpanic("ATA drive init failed as there is no drive present");
+                break;
+
+            case 2:
+                kpanic("ATA drive init failed as the drive is not ATA");
+                break;
+
+            case 3:
+                kpanic("ATA drive init failed as there was an error with the drive");
+                break;
+        }
+    }
 }
