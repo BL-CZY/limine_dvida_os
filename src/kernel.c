@@ -12,12 +12,19 @@ void kernel_main() {
     current_io_state = stdin_command;
     kprintf("root > ");
 
-    for(int i = 0; i < 512; ++i) {
-        sector_buffer[i] = 3;
+    if(identify_ata_drive(ATA_DRIVE_PORT) != 0) {
+        
     }
 
-    kprintf("%u ", pio_write_sector(0));
-    kprintf("%u ", pio_write_sector(0));
+    for(int i = 0; i < 512; ++i) {
+        sector_buffer[i] = 10;
+    }
+
+    pio_read_sector(0x80);
+
+    for(int i = 0; i < 512; ++i) {
+        kprintf("%u ", sector_buffer[i]);
+    }
     
     for(;;) {
         asm("hlt");

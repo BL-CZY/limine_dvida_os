@@ -3,6 +3,78 @@
 #include "../../lib/std/stdio.h"
 
 uint8_t sector_buffer[512];
+uint16_t drive_info_buffer[256];
+
+bool is_lba48_supported;
+uint32_t highest_lba28_sector;
+uint64_t highest_lba48_sector;
+
+/**
+ * function error codes:
+ *  0: the ata drive is present, and the information is in the drive_info_buffer
+ *  1: no ata drive
+ *  2: the drive is not ata
+ *  3: error
+*/
+int identify_ata_drive(uint16_t drive_port) {
+    // send 0xA0 to the drive port to start the process
+    outb(drive_port, 0xA0);
+
+    // clear all these ports
+    outb(ATA_SECTOR_COUNT_PORT, 0);
+    outb(ATA_LBA_LOW_PORT, 0);
+    outb(ATA_LBA_MID_PORT, 0);
+    outb(ATA_LBA_HIGH_PORT, 0);
+
+    // identify command
+    outb(ATA_COMMAND_PORT, 0xEC);
+    
+    // 400ns delay
+    for(int i = 0; i < 14; ++i) {
+        inb(ATA_STATUS_PORT);
+    }
+
+    // read the status port
+    while(true) {
+        if(inb(ATA_STATUS_PORT) == 0) {
+            // drive doesn't exist
+            return 1;
+        }
+
+        if(inb(ATA_LBA_MID_PORT) != 0 || inb(ATA_LBA_HIGH_PORT) != 0) {
+            // drive is not ata
+            return 2;
+        }
+
+        if((inb(ATA_STATUS_PORT) & 0b00000001) == 0b00000001) {
+            // error
+            return 3;
+        }
+
+        // if the 3th bit is set, break out of the loop
+        if((inb(ATA_STATUS_PORT) & 0b00001000) == 0b00001000) {
+            break;
+        }
+    }
+
+    // read in the data
+    for(int i = 0; i < 256; ++i) {
+        drive_info_buffer[i] = inw(ATA_DATA_PORT);
+    }
+
+    if((drive_info_buffer[83] & 0b0000010000000000) == 0b0000010000000000) {
+        kprintf("lba48 is supported by the drive\n");
+        is_lba48_supported = true;
+    }
+
+    return 0;
+}
+
+/**
+ * these functions return 1 if it's not ready
+ * return 2 if timeout
+ * return 3 if failed to flush the cache
+*/
 
 int pio_read_sector(uint64_t lba) {
     int time = 0;
@@ -28,6 +100,11 @@ int pio_read_sector(uint64_t lba) {
 
     // Issue the read command
     outb(ATA_COMMAND_PORT, ATA_CMD_READ_SECTORS);
+
+    // 400ns delay
+    for(int i = 0; i < 14; ++i) {
+        inb(ATA_STATUS_PORT);
+    }
     
     time = 0;
     while((inb(ATA_STATUS_PORT) & 0b00001000) != 0b00001000 || (inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000)
@@ -36,7 +113,7 @@ int pio_read_sector(uint64_t lba) {
         if(time > 100000)
         {
             //error timeout
-            return 1;
+            return 2;
         }
     }
 
@@ -76,6 +153,11 @@ int pio_write_sector(uint64_t lba) {
     // Issue the read command
     outb(ATA_COMMAND_PORT, ATA_CMD_WRITE_SECTORS);
 
+    // 400ns delay
+    for(int i = 0; i < 14; ++i) {
+        inb(ATA_STATUS_PORT);
+    }
+
     time = 0;
     while((inb(ATA_STATUS_PORT) & 0b00001000) != 0b00001000 || (inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000)
     {
@@ -83,7 +165,7 @@ int pio_write_sector(uint64_t lba) {
         if(time > 100000)
         {
             //error timeout
-            return 1;
+            return 2;
         }
     }
 
@@ -91,6 +173,19 @@ int pio_write_sector(uint64_t lba) {
     for(int i = 0; i < 512; i += 2)
     {
         outw(ATA_DATA_PORT, ((uint16_t)(sector_buffer[i] << 8) | (uint16_t)sector_buffer[i + 1]));
+    }
+
+    // flush the cache
+    outb(ATA_COMMAND_PORT, 0xE7);
+
+    time = 0;
+    while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
+        ++time;
+        if(time > 100000)
+        {
+            //error timeout
+            return 3;
+        }
     }
 
     return 0;

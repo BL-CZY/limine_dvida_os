@@ -23,7 +23,13 @@
 #define ATA_CMD_IDENTITY 0xEC
 
 extern uint8_t sector_buffer[512];
+extern uint16_t drive_info_buffer[256];
 
+extern bool is_lba48_supported;
+extern uint32_t highest_lba28_sector;
+extern uint64_t highest_lba48_sector;
+
+int identify_ata_drive(uint16_t drive_port);
 int pio_read_sector(uint64_t lba);
 int pio_write_sector(uint64_t lba);
 
