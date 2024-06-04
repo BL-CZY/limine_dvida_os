@@ -1,9 +1,8 @@
-#include <limine.h>
-
 #include "lib/std/stdio.h"
 #include "lib/utils/mem_utils.h"
-#include "lib/utils/general_utils.h"
 #include "lib/utils/ata_utils.h"
+
+#include <stdint.h>
 
 void kernel_main() {
     kheap_init();

@@ -1,8 +1,8 @@
 #include "pata.h"
 #include "../../lib/file_system/file_system.h"
 #include "../../lib/std/stdio.h"
+#include <stdint.h>
 
-uint8_t sector_buffer[512];
 uint16_t drive_info_buffer[256];
 
 bool is_lba48_supported;
@@ -27,7 +27,7 @@ int identify_ata_drive(uint16_t drive_port) {
     outb(ATA_LBA_HIGH_PORT, 0);
 
     // identify command
-    outb(ATA_COMMAND_PORT, 0xEC);
+    outb(ATA_COMMAND_PORT, ATA_CMD_IDENTITY);
     
     // 400ns delay
     for(int i = 0; i < 14; ++i) {
@@ -94,7 +94,7 @@ int identify_ata_drive(uint16_t drive_port) {
  * return 3 if failed to flush the cache
 */
 
-int pio_read_sector(uint64_t lba) {
+int pio_read_sector(uint64_t lba, uint8_t *result) {
     int time = 0;
     while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
         ++time;
@@ -104,7 +104,7 @@ int pio_read_sector(uint64_t lba) {
             return 1;
         }
     }
-    // Select drive (Assuming drive 0, replace with appropriate value if needed)
+
     // set 111 to enter LBA mode
     outb(ATA_DRIVE_PORT, (uint8_t)(0xE0 | ((lba >> 24) & 0x0F)));
     
@@ -139,14 +139,14 @@ int pio_read_sector(uint64_t lba) {
     for(int i = 0; i < 512; i += 2)
     {
         uint16_t temp = inw(ATA_DATA_PORT);
-        sector_buffer[i] = (uint8_t)temp;
-        sector_buffer[i + 1] = (uint8_t)(temp >> 8);
+        result[i] = (uint8_t)temp;
+        result[i + 1] = (uint8_t)(temp >> 8);
     }
 
     return 0;
 }
 
-int pio_write_sector(uint64_t lba) {
+int pio_write_sector(uint64_t lba, uint8_t *input) {
     int time = 0;
     while((inb(ATA_STATUS_PORT) & 0b10000000) == 0b10000000) {
         ++time;
@@ -190,7 +190,7 @@ int pio_write_sector(uint64_t lba) {
     // write data to the data port
     for(int i = 0; i < 512; i += 2)
     {
-        outw(ATA_DATA_PORT, ((uint16_t)(sector_buffer[i] << 8) | (uint16_t)sector_buffer[i + 1]));
+        outw(ATA_DATA_PORT, ((uint16_t)(input[i] << 8) | (uint16_t)input[i + 1]));
     }
 
     // flush the cache
