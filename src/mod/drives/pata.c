@@ -66,8 +66,8 @@ int identify_ata_drive(uint16_t drive_port) {
         is_lba48_supported = true;
     }
 
-    lba28_sector_count = ((uint32_t)(drive_info_buffer[60]) | (uint32_t)(drive_info_buffer[61]) << 16) - 1;
-    lba48_sector_count = ((uint64_t)(drive_info_buffer[100]) | ((uint64_t)(drive_info_buffer[101])) << 16 | ((uint64_t)(drive_info_buffer[102])) << 32 | ((uint64_t)(drive_info_buffer[103])) << 48) - 1;
+    lba28_sector_count = ((uint32_t)(drive_info_buffer[60]) | (uint32_t)(drive_info_buffer[61]) << 16);
+    lba48_sector_count = ((uint64_t)(drive_info_buffer[100]) | ((uint64_t)(drive_info_buffer[101])) << 16 | ((uint64_t)(drive_info_buffer[102])) << 32 | ((uint64_t)(drive_info_buffer[103])) << 48);
 
     // the log part
 
