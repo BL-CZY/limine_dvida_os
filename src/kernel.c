@@ -1,6 +1,6 @@
-#include "lib/std/stdio.h"
-#include "lib/utils/mem_utils.h"
-#include "lib/utils/ata_utils.h"
+#include "mod/builtin_shell/stdio.h"
+#include "mod/kheap/kheap_utils.h"
+#include "drivers/ata/pata.h"
 
 #include <stdint.h>
 

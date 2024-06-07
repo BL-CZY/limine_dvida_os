@@ -2,13 +2,12 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <limine.h>
+#include "limine.h"
 
-#include "lib/utils/mem_utils.h"
-#include "lib/utils/asm_utils.h"
-#include "lib/std/stdio.h"
-#include "lib/memory/pmm.h"
-#include "lib/file_system/file_system.h"
+#include "mod/mmu/mem_utils.h"
+#include "mod/other_utils/asm_utils.h"
+#include "mod/builtin_shell/stdio.h"
+#include "mod/mmu/pmm.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
