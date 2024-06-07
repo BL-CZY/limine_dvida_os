@@ -118,7 +118,7 @@ init:
 	mkdir -p build
 
 # Link rules for the final kernel executable.
-build/bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
+build/bin/$(KERNEL): Makefile linker.ld $(OBJ)
 	mkdir -p "$$(dirname $@)"
 	$(ENV_LD) $(OBJ) $(LDFLAGS) -o $@
  
@@ -126,17 +126,17 @@ build/bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
 -include $(HEADER_DEPS)
  
 # Compilation rules for *.c files.
-build/obj/%.c.o: src/%.c GNUmakefile
+build/obj/%.c.o: src/%.c Makefile
 	mkdir -p "$$(dirname $@)"
 	$(ENV_CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
  
 # Compilation rules for *.S files.
-build/obj/%.S.o: src/%.S GNUmakefile
+build/obj/%.S.o: src/%.S Makefile
 	mkdir -p "$$(dirname $@)"
 	$(ENV_CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
  
 # Compilation rules for *.asm (nasm) files.
-build/obj/%.asm.o: src/%.asm GNUmakefile
+build/obj/%.asm.o: src/%.asm Makefile
 	mkdir -p "$$(dirname $@)"
 	nasm $(NASMFLAGS) $< -o $@
  
