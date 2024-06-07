@@ -2,7 +2,7 @@
 #define PIC_H
 
 #include <stdint.h>
-#include "../../mod/other_utils/asm_utils.h"
+#include "mod/other_utils/asm_utils.h"
 
 void pic_init();
 void pic_config(uint8_t offset_pic1, uint8_t offset_pic2);

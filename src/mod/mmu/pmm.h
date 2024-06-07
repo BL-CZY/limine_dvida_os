@@ -1,11 +1,12 @@
 #ifndef MEMMAP_H
 #define MEMMAP_H
 
-#include "../../limine.h"
-#include "../builtin_shell/stdio.h"
 #include <stdbool.h>
-#include "../other_utils/handle_utils.h"
-#include "../../limine.h"
+
+#include "limine.h"
+
+#include "mod/builtin_shell/stdio.h"
+#include "mod/other_utils/handle_utils.h"
 
 #define PAGE_SIZE 0x1000ul
 

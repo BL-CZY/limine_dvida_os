@@ -1,6 +1,6 @@
-#include "terminal.h"
-#include "stdio.h"
-#include "../other_utils/time.h"
+#include "./terminal.h"
+#include "./stdio.h"
+#include "mod/other_utils/time.h"
 
 io_state_t current_io_state;
 uint64_t terminal_color_buffer[50][160];

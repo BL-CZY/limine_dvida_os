@@ -1,9 +1,9 @@
-#include "kheap.h"
-#include "../mmu/mem_utils.h"
-#include "../kheap/kheap_utils.h"
-#include "../other_utils/math_utils.h"
-#include "../mmu/pmm.h"
-#include "../builtin_shell/stdio.h"
+#include "./kheap.h"
+#include "mod/mmu/mem_utils.h"
+#include "mod/kheap/kheap_utils.h"
+#include "mod/other_utils/math_utils.h"
+#include "mod/mmu/pmm.h"
+#include "mod/builtin_shell/stdio.h"
 
 uint8_t *kheap_start;
 uint8_t *kheap_end;

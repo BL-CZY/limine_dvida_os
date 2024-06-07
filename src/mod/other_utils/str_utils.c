@@ -1,4 +1,4 @@
-#include "str_utils.h"
+#include "./str_utils.h"
 
 int strcmp(char* first, char* second, int length)
 {

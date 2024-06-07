@@ -1,11 +1,12 @@
 #include <stdint.h>
 
-#include "../builtin_shell/stdio.h"
-#include "../other_utils/time.h"
-#include "../../drivers/keyboard/keyboard.h"
-#include "../other_utils/pic_utils.h"
-#include "../other_utils/asm_utils.h"
-#include "../other_utils/handle_utils.h"
+#include "mod/builtin_shell/stdio.h"
+#include "mod/other_utils/time.h"
+#include "mod/other_utils/pic_utils.h"
+#include "mod/other_utils/asm_utils.h"
+#include "mod/other_utils/handle_utils.h"
+
+#include "drivers/keyboard/keyboard.h"
 
 typedef struct interrupt_info interrupt_info_t;
 

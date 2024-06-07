@@ -2,8 +2,8 @@
 #define PARTITION_UTILS_H
 
 #include <stdbool.h>
-#include "gpt.h"
-#include "../ata/pata.h"
+#include "./gpt.h"
+#include "drivers/ata/pata.h"
 
 //this function checks if the gpt table is here
 bool is_gpt_present(ata_drive_t *drive);

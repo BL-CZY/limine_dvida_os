@@ -1,7 +1,7 @@
-#include "interpreter.h"
-#include "shell.h"
-#include "../other_utils/str_utils.h"
-#include "stdio.h"
+#include "./interpreter.h"
+#include "./shell.h"
+#include "./stdio.h"
+#include "mod/other_utils/str_utils.h"
 
 char command_buffer[50];
 int command_buffer_index = 0;

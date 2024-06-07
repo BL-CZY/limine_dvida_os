@@ -1,4 +1,4 @@
-#include "../../mod/other_utils/pic_utils.h"
+#include "mod/other_utils/pic_utils.h"
 #include "pic.h"
 
 // a port is an entry for input/output, such as keyboard and sound

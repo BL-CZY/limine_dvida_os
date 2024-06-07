@@ -1,7 +1,7 @@
 #ifndef GPT_H
 #define GPT_H
 
-#include "../ata/pata.h"
+#include "drivers/ata/pata.h"
 
 typedef struct gpt_table_entry {
     uint8_t partition_type_guid[16];

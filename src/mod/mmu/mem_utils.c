@@ -1,4 +1,4 @@
-#include "mem_utils.h"
+#include "./mem_utils.h"
 
 void *memcpy(void *dest, const void *src, size_t n) {
     uint8_t *pdest = (uint8_t *)dest;

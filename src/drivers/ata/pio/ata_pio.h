@@ -3,9 +3,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "../pata.h"
-#include "../../../mod/other_utils/asm_utils.h"
-#include "../../../mod/other_utils/handle_utils.h"
+
+#include "mod/other_utils/asm_utils.h"
+#include "mod/other_utils/handle_utils.h"
 
 // ATA Ports
 #define ATA_DATA_PORT_OFFSET 0

@@ -1,6 +1,8 @@
-#include "ata_pio.h"
-#include "../../../mod/builtin_shell/stdio.h"
 #include <stdint.h>
+
+#include "./ata_pio.h"
+
+#include "mod/builtin_shell/stdio.h"
 
 ata_drive_t ata_primary_drive = {
     .identified = false,

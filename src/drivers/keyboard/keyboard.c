@@ -1,6 +1,7 @@
-#include "keyboard.h"
-#include "../../mod/builtin_shell/stdio.h"
-#include "../../mod/builtin_shell/shell.h"
+#include "./keyboard.h"
+
+#include "mod/builtin_shell/stdio.h"
+#include "mod/builtin_shell/shell.h"
 
 #pragma region macros
 
