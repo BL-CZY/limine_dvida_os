@@ -1,6 +1,6 @@
 #include "./pmm.h"
 #include "./mem_utils.h"
-#include "mod/other_utils/math_utils.h"
+#include "mod/algorithms/math_utils.h"
 
 uint8_t *bit_map_start;
 uint64_t bit_map_length;

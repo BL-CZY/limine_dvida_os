@@ -1,7 +1,7 @@
 #include "./kheap.h"
 #include "mod/mmu/mem_utils.h"
 #include "mod/kheap/kheap_utils.h"
-#include "mod/other_utils/math_utils.h"
+#include "mod/algorithms/math_utils.h"
 #include "mod/mmu/pmm.h"
 #include "mod/builtin_shell/stdio.h"
 

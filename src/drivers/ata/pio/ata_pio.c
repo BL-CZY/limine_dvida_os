@@ -77,9 +77,21 @@ int identify_ata_drive(ata_drive_t *drive) {
     drive->lba28_sector_count = ((uint32_t)(drive_info_buffer[60]) | (uint32_t)(drive_info_buffer[61]) << 16);
     drive->lba48_sector_count = ((uint64_t)(drive_info_buffer[100]) | ((uint64_t)(drive_info_buffer[101])) << 16 | ((uint64_t)(drive_info_buffer[102])) << 32 | ((uint64_t)(drive_info_buffer[103])) << 48);
 
+    // set serial number
+
+    for(int i = 0; i < 10; ++i) {
+        drive->serial[i * 2] = (uint8_t)(drive_info_buffer[34 + i] >> 8);
+        drive->serial[(i * 2) + 1] = (uint8_t)(drive_info_buffer[34 + i]);
+    }
+
     // the log part
 
     kprintf("ATA drive identified on port %x\n", drive->base_port);
+    kprintf("drive serial is: ");
+    for(int i = 0; i < 20; ++i) {
+        kprintf("%x ", drive->serial[i]);
+    }
+    kprintf("\n");
 
     if(drive->is_lba48_supported) {
         kprintf("lba48 is supported by the drive\n");
@@ -106,7 +118,7 @@ int identify_ata_drive(ata_drive_t *drive) {
 */
 
 
-int pio_read_sector(ata_drive_t *drive, uint64_t sector_index, uint16_t sector_count, bool from_end, uint8_t *result) {
+int pio_read_sector(ata_drive_t *drive, int64_t sector_index, uint16_t sector_count, uint8_t *result) {
     if(!drive->identified) {
         return 1;
     }
@@ -114,7 +126,7 @@ int pio_read_sector(ata_drive_t *drive, uint64_t sector_index, uint16_t sector_c
     uint64_t lba = 0;
 
     //* if lba48 available use lba48
-    if(from_end) {
+    if(sector_index < 0) {
         // if this is true, index from the end of the drive
 
         //* use the lba48 sector count if possible
@@ -215,7 +227,7 @@ int pio_read_sector(ata_drive_t *drive, uint64_t sector_index, uint16_t sector_c
     return 0;
 }
 
-int pio_write_sector(ata_drive_t *drive, uint64_t sector_index, uint16_t sector_count, bool from_end, uint8_t *input) {
+int pio_write_sector(ata_drive_t *drive, int64_t sector_index, uint16_t sector_count, uint8_t *input) {
     if(!drive->identified) {
         // error unidentified drive
         return 1;
@@ -224,19 +236,19 @@ int pio_write_sector(ata_drive_t *drive, uint64_t sector_index, uint16_t sector_
     uint64_t lba = 0;
 
     //* if lba48 available use lba48
-    if(from_end) {
+    if(sector_index < 0) {
         // if this is true, index from the end of the drive
 
         //* use the lba48 sector count if possible
         if(drive->is_lba48_supported) {
-            lba = drive->lba48_sector_count - sector_index - 1;
+            lba = drive->lba48_sector_count + sector_index;
         } else {
-            lba = drive->lba28_sector_count - sector_index - 1;
+            lba = drive->lba28_sector_count + sector_index;
         }
     } else {
         lba = sector_index;
     }
-
+    
     // check if the sectors are out of bound
     if(drive->is_lba48_supported) {
         if((lba + sector_count) > drive->lba48_sector_count) {
@@ -318,7 +330,7 @@ int pio_write_sector(ata_drive_t *drive, uint64_t sector_index, uint16_t sector_
         // write data to the data port
         for(int j = 0; j < 512; j += 2)
         {
-            outw(drive->base_port + ATA_DATA_PORT_OFFSET, ((uint16_t)(input[(i * 512) + j] << 8) | (uint16_t)input[(i * 512) + j + 1]));
+            outw(drive->base_port + ATA_DATA_PORT_OFFSET, ((uint16_t)(input[(i * 512) + j]) | (uint16_t)input[(i * 512) + j + 1] << 8));
         }
 
         // flush the cache

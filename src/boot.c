@@ -7,6 +7,7 @@
 #include "mod/mmu/mem_utils.h"
 #include "mod/other_utils/asm_utils.h"
 #include "mod/builtin_shell/stdio.h"
+#include "mod/algorithms/crc32.h"
 #include "mod/mmu/pmm.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
@@ -79,6 +80,9 @@ void _start(void) {
      * do whatever for the setup texts
     */
     pmm_init(memmap_request.response, hhdm_request.response);
+
+    // initialize crc32
+    initialize_crc32();
 
     kernel_main();
  

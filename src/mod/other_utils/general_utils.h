@@ -30,6 +30,4 @@ void uint16_to_little_endian(uint16_t input, uint8_t *result);
 void uint32_to_little_endian(uint32_t input, uint8_t *result);
 void uint64_to_little_endian(uint64_t input, uint8_t *result);
 
-uint32_t crc32b(uint8_t *message);
-
 #endif

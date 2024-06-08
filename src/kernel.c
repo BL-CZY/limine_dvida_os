@@ -1,6 +1,7 @@
 #include "mod/builtin_shell/stdio.h"
 #include "mod/kheap/kheap_utils.h"
 #include "drivers/ata/pata.h"
+#include "drivers/partition/gpt.h"
 
 #include <stdint.h>
 
@@ -12,12 +13,7 @@ void kernel_main() {
     ata_drive_init();
     kprintf("\n");
 
-    uint8_t buffer[1024];
-
-    for(int i = 0; i < 1024; ++i) {
-        buffer[i] = 0;
-    }
-    kprintf("%u", pio_write_sector(&ata_primary_drive, 0, 2, false, buffer));
+    create_gpt(&ata_primary_drive);
 
     current_io_state = stdin_command;
     kprintf("root > ");
