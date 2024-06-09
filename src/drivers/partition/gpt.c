@@ -6,15 +6,12 @@
 #include "mod/other_utils/general_utils.h"
 #include "mod/algorithms/crc32.h"
 
-const uint8_t GPT_EFI_HEADER[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
-const uint8_t EFI_REVISION[4] = {0x00, 0x00, 0x01, 0x00};
+const static uint8_t GPT_EFI_SIGNATURE[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
+const static uint8_t EFI_REVISION[4] = {0x00, 0x00, 0x01, 0x00};
 
-bool is_gpt_present(ata_drive_t *drive) {
-    //TODO use DMA
-    uint8_t buffer[512];
-    pio_read_sector(drive, 1, 1, buffer);
+bool is_gpt_present(uint8_t *buffer) {
     for(int i = 0; i < 8; ++i) {
-        if(buffer[i] != GPT_EFI_HEADER[i]) {
+        if(buffer[i] != GPT_EFI_SIGNATURE[i]) {
             return false;
         }
     }
@@ -44,14 +41,14 @@ void create_gpt(ata_drive_t *drive) {
         .entry_size = 128,
     };
 
-    // set header and revision
+    // set signature and revision
 
     for(int i = 0; i < 8; ++i) {
-        result.header[i] = GPT_EFI_HEADER[i];
+        result.signature[i] = GPT_EFI_SIGNATURE[i];
     }
 
     for(int i = 0; i < 4; ++i) {
-        result.header[i] = EFI_REVISION[i];
+        result.signature[i] = EFI_REVISION[i];
     }
 
     // set the guid as the serial number of the disk
@@ -93,7 +90,7 @@ void create_gpt(ata_drive_t *drive) {
 
     // signature
     for(int i = 0; i < 8; ++i) {
-        efi_header[i] = GPT_EFI_HEADER[i];
+        efi_header[i] = GPT_EFI_SIGNATURE[i];
     }
 
     // revision
@@ -178,7 +175,97 @@ void create_gpt(ata_drive_t *drive) {
 /**
     0: no error
     1: gpt not present    
+    2: crc32 doesn't match
 */
 int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table) {
+    uint8_t efi_header_buffer[512];
+    pio_read_sector(drive, 1, 1, efi_header_buffer);
+
+    if(!is_gpt_present(efi_header_buffer)) {
+        // gpt not present
+        return 1;
+    }
+
+    // get the crc32 check sum
+    uint32_t header_crc32 = little_endian_to_uint32(efi_header_buffer + 16);
+
+    // clear the crc32
+    for(int i = 16; i < 20; ++i) {
+        efi_header_buffer[i] = 0;
+    }
+
+    // verify crc32
+    if(header_crc32 != full_crc(efi_header_buffer, 512)) {
+        return 2;
+    }
+
+    #pragma region set_header
+
+    // set signature
+    for(int i = 0; i < 8; ++i) {
+        result_header->signature[i] = efi_header_buffer[i];
+    }
+
+    // set revision
+    for(int i = 0; i < 4; ++i) {
+        result_header->revision[i] = efi_header_buffer[8 + i];
+    }
+
+    // header size
+    result_header->header_size = little_endian_to_uint32(efi_header_buffer + 12);
+
+    // crc32
+    result_header->header_crc32 = header_crc32;
+
+    // reserved is 0
+    result_header->reserved = 0;
+
+    // header lba
+    result_header->header_lba_address = little_endian_to_uint64(efi_header_buffer + 24);
+
+    // backup lba
+    result_header->backup_header_lba_address = little_endian_to_uint64(efi_header_buffer + 32);
+
+    // first usable lba
+    result_header->first_usable_block_lba = little_endian_to_uint64(efi_header_buffer + 40);
+
+    // last usable lba
+    result_header->last_usable_block_lba = little_endian_to_uint64(efi_header_buffer + 48);
+
+    // guid
+    for(int i = 0; i < 4; ++i) {
+        result_header->disk_guid.data1[i] = efi_header_buffer[59 - i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        result_header->disk_guid.data2[i] = efi_header_buffer[61 - i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        result_header->disk_guid.data3[i] = efi_header_buffer[63 - i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        result_header->disk_guid.data4[i] = efi_header_buffer[64 + i];
+    }
+
+    for(int i = 0;i < 6; ++i) {
+        result_header->disk_guid.data5[i] = efi_header_buffer[66 + i];
+    }
+
+    // starting lba of array
+    result_header->partition_array_start_lba = little_endian_to_uint64(efi_header_buffer + 72);
+
+    // no. of partitions
+    result_header->entry_num = little_endian_to_uint32(efi_header_buffer + 80);
+
+    // entry size
+    result_header->entry_size = little_endian_to_uint32(efi_header_buffer + 84);
+
+    // array crc32
+    result_header->array_crc32 = little_endian_to_uint32(efi_header_buffer + 88);
+
+    #pragma endregion
+
     return 0;
 }

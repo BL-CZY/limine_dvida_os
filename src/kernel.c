@@ -13,8 +13,6 @@ void kernel_main() {
     ata_drive_init();
     kprintf("\n");
 
-    create_gpt(&ata_primary_drive);
-
     current_io_state = stdin_command;
     kprintf("root > ");
     

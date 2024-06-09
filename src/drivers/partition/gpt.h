@@ -26,7 +26,7 @@ typedef struct guid {
 } guid_t;
 
 typedef struct gpt_efi_header {
-    uint8_t header[8];
+    uint8_t signature[8];
     uint8_t revision[4];
     uint32_t header_size; //in little endian
     uint32_t header_crc32;
@@ -43,7 +43,7 @@ typedef struct gpt_efi_header {
 } gpt_efi_header_t;
 
 //this function checks if the gpt table is here
-bool is_gpt_present(ata_drive_t *drive);
+bool is_gpt_present(uint8_t *buffer);
 
 //this function creates a new gpt table
 void create_gpt(ata_drive_t *drive);
