@@ -175,7 +175,8 @@ void create_gpt(ata_drive_t *drive) {
 /**
     0: no error
     1: gpt not present    
-    2: crc32 doesn't match
+    2: crc32 doesn't match for header
+    3: crc32 doesn't match for array
 */
 int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table) {
     uint8_t efi_header_buffer[512];
@@ -264,6 +265,23 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
 
     // array crc32
     result_header->array_crc32 = little_endian_to_uint32(efi_header_buffer + 88);
+
+    #pragma endregion
+
+    #pragma region array
+
+    // read the array
+    uint8_t array_buffer[result_header->entry_size * result_header->entry_num];
+    pio_read_sector(drive, 2, result_header->entry_size * result_header->entry_num / 512, array_buffer);
+
+    // verify the crc32
+    if(!(full_crc(array_buffer, result_header->entry_size * result_header->entry_num) == result_header->array_crc32)) {
+        // crc32 doesn't match
+        return 3;
+    }
+
+    // read through the buffer
+    
 
     #pragma endregion
 

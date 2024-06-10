@@ -13,7 +13,8 @@ typedef struct gpt_table_entry {
 } gpt_table_entry_t;
 
 typedef struct gpt_table {
-    gpt_table_entry_t *entries;
+    uint16_t entry_count;
+    gpt_table_entry_t entries[32]; // the maximum number should be 64
 } gpt_table_t;
 
 //* data 1, 2, and 3 are in little endian, and data 4 and 5 are in big endian
