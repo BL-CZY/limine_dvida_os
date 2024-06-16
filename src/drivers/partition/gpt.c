@@ -6,8 +6,8 @@
 #include "mod/other_utils/general_utils.h"
 #include "mod/algorithms/crc32.h"
 
-const static uint8_t GPT_EFI_SIGNATURE[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
-const static uint8_t EFI_REVISION[4] = {0x00, 0x00, 0x01, 0x00};
+static const uint8_t GPT_EFI_SIGNATURE[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
+static const uint8_t EFI_REVISION[4] = {0x00, 0x00, 0x01, 0x00};
 
 bool is_gpt_present(uint8_t *buffer) {
     for(int i = 0; i < 8; ++i) {
@@ -171,6 +171,26 @@ void create_gpt(ata_drive_t *drive) {
     #pragma endregion
 }
 
+void read_entry(uint8_t *buffer, gpt_table_entry_t *result) {
+    // read the partition type guid
+    buffer_to_guid(buffer, &result->partition_type_guid);
+
+    // read the unique guid
+    buffer_to_guid(buffer + 16, &result->unique_partition_guid);
+
+    // start and end lba, both inclusive
+    result->start_lba = little_endian_to_uint64(buffer + 32);
+    result->end_lba = little_endian_to_uint64(buffer + 40);
+
+    // flags
+    result->flags = little_endian_to_uint64(buffer + 48);
+
+    // name
+    for(int i = 0; i < 36; ++i) {
+        result->utf16_name[i] = little_endian_to_uint16(buffer + 56 + (i * 2));
+    }
+}
+
 //* error codes:
 /**
     0: no error
@@ -234,25 +254,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
     result_header->last_usable_block_lba = little_endian_to_uint64(efi_header_buffer + 48);
 
     // guid
-    for(int i = 0; i < 4; ++i) {
-        result_header->disk_guid.data1[i] = efi_header_buffer[59 - i];
-    }
-
-    for(int i = 0; i < 2; ++i) {
-        result_header->disk_guid.data2[i] = efi_header_buffer[61 - i];
-    }
-
-    for(int i = 0; i < 2; ++i) {
-        result_header->disk_guid.data3[i] = efi_header_buffer[63 - i];
-    }
-
-    for(int i = 0; i < 2; ++i) {
-        result_header->disk_guid.data4[i] = efi_header_buffer[64 + i];
-    }
-
-    for(int i = 0;i < 6; ++i) {
-        result_header->disk_guid.data5[i] = efi_header_buffer[66 + i];
-    }
+    buffer_to_guid(efi_header_buffer + 56, &result_header->disk_guid);
 
     // starting lba of array
     result_header->partition_array_start_lba = little_endian_to_uint64(efi_header_buffer + 72);
@@ -281,9 +283,13 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
     }
 
     // read through the buffer
-    
+    for(uint16_t i = 0; i < result_header->entry_num; ++i) {
+        read_entry(array_buffer + (i * result_header->entry_size), &result_table->entries[i]);
+    }
 
     #pragma endregion
 
     return 0;
 }
+
+int create_partition(ata_drive_t *drive, guid_t *type_guid) {}

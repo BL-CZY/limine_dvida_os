@@ -2,29 +2,21 @@
 #define GPT_H
 
 #include "drivers/ata/pata.h"
+#include "mod/guid/guid.h"
 
 typedef struct gpt_table_entry {
-    uint8_t partition_type_guid[16];
-    uint8_t unique_partition_guid[16];
+    guid_t partition_type_guid;
+    guid_t unique_partition_guid;
     uint64_t start_lba;
     uint64_t end_lba;
-    uint8_t attributes[8];
-    char name[72];
+    uint64_t flags;
+    uint16_t utf16_name[36];
 } gpt_table_entry_t;
 
 typedef struct gpt_table {
     uint16_t entry_count;
-    gpt_table_entry_t entries[32]; // the maximum number should be 64
+    gpt_table_entry_t entries[32]; // the maximum number should be 32
 } gpt_table_t;
-
-//* data 1, 2, and 3 are in little endian, and data 4 and 5 are in big endian
-typedef struct guid {
-    uint8_t data1[4];
-    uint8_t data2[2];
-    uint8_t data3[2];
-    uint8_t data4[2];
-    uint8_t data5[6];
-} guid_t;
 
 typedef struct gpt_efi_header {
     uint8_t signature[8];
@@ -49,7 +41,11 @@ bool is_gpt_present(uint8_t *buffer);
 //this function creates a new gpt table
 void create_gpt(ata_drive_t *drive);
 
+void read_entry(uint8_t *buffer, gpt_table_entry_t *result);
+
 //this function reads the gpt table
 int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table);
+
+int create_partition(ata_drive_t *drive, guid_t *type_guid);
 
 #endif
