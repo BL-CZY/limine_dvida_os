@@ -293,7 +293,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
 // 2: crc32 doesn't match for header
 // 3: crc32 doesn't match for awway
 // 4: no more entries
-int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length) {
+int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name) {
     if(!is_gpt_present(drive)) {
         return 1;
     }
@@ -327,5 +327,23 @@ int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, 
         return 4;
     }
 
-    
+    // copy the partition type guid
+    cpy_guid(type_guid, &target->partition_type_guid);
+
+    // generate unique guid
+    guid_t unique_guid;
+    new_guid(&unique_guid);
+    cpy_guid(&unique_guid, &target->unique_partition_guid);
+
+    // first and last lba
+    target->start_lba = start_lba;
+    target->end_lba = start_lba + length - 1;
+
+    // no flags when initialize
+    target->flags = 0;
+
+    // set name
+    for(int i = 0; i < 36; ++i) {
+        target->utf16_name[i] = name[i];
+    }
 }

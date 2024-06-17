@@ -51,6 +51,6 @@ void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint32_t *entry_coun
 //this function reads the gpt table
 int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table);
 
-int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length);
+int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name);
 
 #endif

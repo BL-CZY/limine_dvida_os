@@ -20,6 +20,8 @@ void guid_to_buffer(guid_t *uid, uint8_t *result);
 
 bool are_guid_same(guid_t *guid1, guid_t *guid2);
 
+void cpy_guid(guid_t *input, guid_t *target);
+
 void new_guid(guid_t *result);
 
 #endif

@@ -58,6 +58,28 @@ bool are_guid_same(guid_t *guid1, guid_t *guid2) {
     return true;
 }
 
+void cpy_guid(guid_t *input, guid_t *target) {
+    for(int i = 0; i < 4; ++i) {
+        target->data1[i] = input->data1[i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        target->data2[i] = input->data2[i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        target->data3[i] = input->data3[i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        target->data4[i] = input->data4[i];
+    }
+
+    for(int i = 0; i < 6; ++i) {
+        target->data5[i] = input->data5[i];
+    }
+}
+
 void new_guid(guid_t *result) {
     uint32_to_little_endian(random_uint32(&default_rng_state), result->data1);
 
