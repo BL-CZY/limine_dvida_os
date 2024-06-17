@@ -2,7 +2,7 @@
 #define GPT_H
 
 #include "drivers/ata/pata.h"
-#include "mod/guid/guid.h"
+#include "mod/algorithms/guid.h"
 
 typedef struct gpt_table_entry {
     guid_t partition_type_guid;

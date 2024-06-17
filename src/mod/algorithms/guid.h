@@ -2,6 +2,8 @@
 #define GUID_H
 
 #include <stdint.h>
+#include "mod/algorithms/rng.h"
+#include "mod/other_utils/general_utils.h"
 
 //* data 1, 2, and 3 are in little endian, and data 4 and 5 are in big endian
 typedef struct guid {
@@ -13,5 +15,7 @@ typedef struct guid {
 } guid_t;
 
 void buffer_to_guid(uint8_t *buffer, guid_t *result);
+
+void new_guid(guid_t *result);
 
 #endif

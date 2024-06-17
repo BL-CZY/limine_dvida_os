@@ -2,6 +2,7 @@
 #include "mod/kheap/kheap_utils.h"
 #include "drivers/ata/pata.h"
 #include "drivers/partition/gpt.h"
+#include "mod/algorithms/rng.h"
 
 #include <stdint.h>
 

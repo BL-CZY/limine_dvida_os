@@ -8,6 +8,7 @@
 #include "mod/other_utils/asm_utils.h"
 #include "mod/builtin_shell/stdio.h"
 #include "mod/algorithms/crc32.h"
+#include "mod/algorithms/rng.h"
 #include "mod/mmu/pmm.h"
 
 // Set the base revision to 1, this is recommended as this is the latest
@@ -83,6 +84,10 @@ void _start(void) {
 
     // initialize crc32
     initialize_crc32();
+
+    // initialize rng
+    // TODO use different seeds
+    init_rand_state(&default_rng_state, 19650218UL);
 
     kernel_main();
  

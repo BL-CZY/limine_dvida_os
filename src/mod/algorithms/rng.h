@@ -19,6 +19,14 @@
 #define c 0xefc60000UL
 #define f 1812433253UL
 
-void init_rand_state(uint32_t seed);
+typedef struct rng_state {
+    uint32_t state_array[n];
+    int state_index;
+} rng_state_t;
+
+extern rng_state_t default_rng_state;
+
+void init_rand_state(rng_state_t *state, uint32_t seed);
+uint32_t random_uint32(rng_state_t *state);
 
 #endif
