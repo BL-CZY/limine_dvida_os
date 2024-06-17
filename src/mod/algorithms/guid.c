@@ -22,6 +22,42 @@ void buffer_to_guid(uint8_t *buffer, guid_t *result) {
     }
 }
 
+void guid_to_buffer(guid_t *uid, uint8_t *result) {
+    for(int i = 0; i < 4; ++i) {
+        result[i] = uid->data1[3 - i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        result[4 + i] = uid->data2[1 - i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        result[6 + i] = uid->data3[1 - i];
+    }
+
+    for(int i = 0; i < 2; ++i) {
+        result[8 + i] = uid->data4[i];
+    }
+
+    for(int i = 0; i < 6; ++i) {
+        result[10 + i] = uid->data5[i];
+    }
+}
+
+bool are_guid_same(guid_t *guid1, guid_t *guid2) {
+    uint8_t guid1_buf[16], guid2_buf[16];
+    guid_to_buffer(guid1, guid1_buf);
+    guid_to_buffer(guid2, guid2_buf);
+
+    for(int i = 0; i < 16; ++i) {
+        if(guid1_buf[i] != guid2_buf[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void new_guid(guid_t *result) {
     uint32_to_little_endian(random_uint32(&default_rng_state), result->data1);
 

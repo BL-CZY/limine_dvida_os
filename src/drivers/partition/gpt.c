@@ -18,6 +18,16 @@ bool is_gpt_present(uint8_t *buffer) {
     return true;
 }
 
+bool is_entry_unused(uint8_t *buffer) {
+    for(int i = 0; i < 16; ++i) {
+        if(buffer[i] != 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void create_gpt(ata_drive_t *drive) {
     #pragma region header_struct
 
@@ -51,26 +61,8 @@ void create_gpt(ata_drive_t *drive) {
         result.signature[i] = EFI_REVISION[i];
     }
 
-    // set the guid as the serial number of the disk
-    for(int i = 0; i < 4; ++i) {
-        result.disk_guid.data1[i] = drive->serial[i]; // big endian
-    }
-
-    for(int i = 0; i < 2; ++i) {
-        result.disk_guid.data2[i] = drive->serial[i + 4]; // big endian
-    }
-
-    for(int i = 0; i < 2; ++i) {
-        result.disk_guid.data3[i] = drive->serial[i + 6]; // big endian
-    }
-
-    for(int i = 0; i < 2; ++i) {
-        result.disk_guid.data4[i] = drive->serial[8 + i]; // big endian
-    }
-
-    for(int i = 0; i < 6; ++i) {
-        result.disk_guid.data5[i] = drive->serial[10 + i]; // big endian
-    }
+    // create guid
+    new_guid(&result.disk_guid);
 
     // initialize an empty array
     uint8_t partition_array[32 * 512];
@@ -171,7 +163,11 @@ void create_gpt(ata_drive_t *drive) {
     #pragma endregion
 }
 
-void read_entry(uint8_t *buffer, gpt_table_entry_t *result) {
+void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint32_t *entry_count) {
+    if(is_entry_unused(buffer)) {
+        ++*entry_count;
+    }
+
     // read the partition type guid
     buffer_to_guid(buffer, &result->partition_type_guid);
 
@@ -284,7 +280,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
 
     // read through the buffer
     for(uint16_t i = 0; i < result_header->entry_num; ++i) {
-        read_entry(array_buffer + (i * result_header->entry_size), &result_table->entries[i]);
+        read_entry(array_buffer + (i * result_header->entry_size), &result_table->entries[i], &result_table->entry_count);
     }
 
     #pragma endregion
@@ -292,4 +288,44 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
     return 0;
 }
 
-int create_partition(ata_drive_t *drive, guid_t *type_guid) {}
+// error codes:
+// 1: GPT not present
+// 2: crc32 doesn't match for header
+// 3: crc32 doesn't match for awway
+// 4: no more entries
+int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length) {
+    if(!is_gpt_present(drive)) {
+        return 1;
+    }
+
+    gpt_efi_header_t header;
+    gpt_table_t table;
+
+    int error_code = read_gpt(drive, &header, &table);
+
+    if(error_code != 0) {
+        return error_code;
+    }
+
+    if(table.entry_count >= 32) {
+        return 4;
+    }
+
+    gpt_table_entry_t *target;
+
+    // iterate through the table to find an unused one
+    for(int i = 0; i < 32; ++i) {
+        uint8_t buffer[16];
+        guid_to_buffer(&table.entries[i].partition_type_guid, buffer);
+        if(is_entry_unused(buffer)) {
+            target = &table.entries[i];
+            break;
+        }
+    }
+
+    if(target == NULL) {
+        return 4;
+    }
+
+    
+}

@@ -16,6 +16,10 @@ typedef struct guid {
 
 void buffer_to_guid(uint8_t *buffer, guid_t *result);
 
+void guid_to_buffer(guid_t *uid, uint8_t *result);
+
+bool are_guid_same(guid_t *guid1, guid_t *guid2);
+
 void new_guid(guid_t *result);
 
 #endif

@@ -37,15 +37,20 @@ typedef struct gpt_efi_header {
 
 //this function checks if the gpt table is here
 bool is_gpt_present(uint8_t *buffer);
+bool is_entry_unused(uint8_t *buffer);
 
 //this function creates a new gpt table
 void create_gpt(ata_drive_t *drive);
 
-void read_entry(uint8_t *buffer, gpt_table_entry_t *result);
+void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint32_t *entry_count);
+
+#define READ_GPT_ERR_NO_GPT 1
+#define READ_GPT_ERR_CRC32_DOESNT_MATCH_FOR_HEADER 2
+#define READ_GPT_ERR_CRC32_DOESNT_MATCH_FOR_ARRAY 3
 
 //this function reads the gpt table
 int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table);
 
-int create_partition(ata_drive_t *drive, guid_t *type_guid);
+int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length);
 
 #endif
