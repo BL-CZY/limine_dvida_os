@@ -1,10 +1,7 @@
 #include <stdint.h>
 
 #include "./gpt.h"
-
-#include "drivers/ata/pata.h"
-#include "mod/other_utils/general_utils.h"
-#include "mod/algorithms/crc32.h"
+#include "mod/builtin_shell/stdio.h"
 
 static const uint8_t GPT_EFI_SIGNATURE[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
 static const uint8_t EFI_REVISION[4] = {0x00, 0x00, 0x01, 0x00};
@@ -163,8 +160,8 @@ void create_gpt(ata_drive_t *drive) {
     #pragma endregion
 }
 
-void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint32_t *entry_count) {
-    if(is_entry_unused(buffer)) {
+void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint16_t *entry_count) {
+    if(!is_entry_unused(buffer)) {
         ++*entry_count;
     }
 
@@ -291,7 +288,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
 
     // read the array
     uint8_t array_buffer[result_header->entry_size * result_header->entry_num];
-    pio_read_sector(drive, 2, result_header->entry_size * result_header->entry_num / 512, array_buffer);
+    pio_read_sector(drive, result_header->partition_array_start_lba, result_header->entry_size * result_header->entry_num / 512, array_buffer);
 
     // verify the crc32
     if(!(full_crc(array_buffer, result_header->entry_size * result_header->entry_num) == result_header->array_crc32)) {
@@ -313,7 +310,7 @@ void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *ta
     // compute the array
     uint8_t array_buffer[header->entry_num * header->entry_size];
 
-    for(int i = 0; i < header->entry_num; ++i) {
+    for(uint32_t i = 0; i < header->entry_num; ++i) {
         write_entry_to_buffer(&table->entries[i], array_buffer + (i * header->entry_size));
     }
 
@@ -323,11 +320,63 @@ void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *ta
     // zero out the header crc32
     header->header_crc32 = 0;
 
-    // TODO convert the header into a buffer
+    // convert the header into a buffer
+    uint8_t header_buffer[512];
 
-    // TODO calculate the crc32 of the arrya
+    // copy the signature
+    memcpy((void *)header_buffer, (void *)header->signature, 8);
 
-    // TODO write to the disk
+    // copy the revision num
+    memcpy((void *)(header_buffer + 8), (void *)header->revision, 4);
+
+    // header size
+    uint32_to_little_endian(header->header_size, header_buffer + 12);
+
+    // crc32 and reserved
+    memset(header_buffer + 16, 0, 8);
+
+    // current lba
+    uint64_to_little_endian(header->header_lba_address, header_buffer + 24);
+
+    // alternative lba
+    uint64_to_little_endian(header->backup_header_lba_address, header_buffer + 32);
+
+    // first usable lba
+    uint64_to_little_endian(header->first_usable_block_lba, header_buffer + 40);
+
+    // last usable lba
+    uint64_to_little_endian(header->last_usable_block_lba, header_buffer + 48);
+
+    // guid
+    guid_to_buffer(&header->disk_guid, header_buffer + 56);
+
+    // partition entry start lba
+    uint64_to_little_endian(header->partition_array_start_lba, header_buffer + 72);
+
+    // num of entries
+    uint32_to_little_endian(header->entry_num, header_buffer + 80);
+
+    // entry size
+    uint32_to_little_endian(header->entry_size, header_buffer + 84);
+
+    // array crc32
+    uint32_to_little_endian(header->array_crc32, header_buffer + 88);
+
+    // all empty
+    memset(header_buffer + 92, 0, 420);
+
+    // calculate the crc32
+    header->header_crc32 = full_crc(header_buffer, 512);
+    uint32_to_little_endian(header->header_crc32, header_buffer + 16);
+
+    // write to the disk
+    // primary
+    pio_write_sector(drive, 1, 1, header_buffer);
+    pio_write_sector(drive, 2, 32, array_buffer);
+
+    // secondary
+    pio_write_sector(drive, -1, 1, header_buffer);
+    pio_write_sector(drive, -33, 32, array_buffer);
 }
 
 // error codes:
@@ -336,10 +385,6 @@ void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *ta
 // 3: crc32 doesn't match for awway
 // 4: no more entries
 int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name) {
-    if(!is_gpt_present(drive)) {
-        return 1;
-    }
-
     gpt_efi_header_t header;
     gpt_table_t table;
 
@@ -349,11 +394,15 @@ int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, 
         return error_code;
     }
 
-    if(table.entry_count >= 32) {
+    if(!is_gpt_present(header.signature)) {
+        return 1;
+    }
+
+    if(table.entry_count >= 128) {
         return 4;
     }
 
-    gpt_table_entry_t *target;
+    gpt_table_entry_t *target = NULL;
 
     // iterate through the table to find an unused one
     for(int i = 0; i < 32; ++i) {
@@ -391,4 +440,52 @@ int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, 
 
     // increment the entry count
     ++table.entry_count;
+
+    overwrite_gpt(drive, &header, &table);
+
+    return 0;
+}
+
+// error code 4: index too large
+int delete_partition(ata_drive_t *drive, size_t index) {
+    gpt_efi_header_t header;
+    gpt_table_t table;
+
+    int error_code = read_gpt(drive, &header, &table);
+
+    if(error_code != 0) {
+        return error_code;
+    }
+
+    if((uint32_t)index >= header.entry_num) {
+        return 5;
+    }
+
+    if(!is_gpt_present(header.signature)) {
+        return 1;
+    }
+
+    table.entry_count -= 1;
+    guid_t empty_guid = {
+        .data1 = {0, 0, 0, 0},
+        .data2 = {0, 0},
+        .data3 = {0, 0},
+        .data4 = {0, 0},
+        .data5 = {0, 0, 0, 0, 0},
+    };
+
+    cpy_guid(&empty_guid, &table.entries[index].partition_type_guid);
+    cpy_guid(&empty_guid, &table.entries[index].unique_partition_guid);
+
+    table.entries[index].start_lba = 0;
+    table.entries[index].end_lba = 0;
+    table.entries[index].flags = 0;
+    
+    for(int i = 0; i < 36; ++i) {
+        table.entries[index].utf16_name[i] = 0;
+    }
+
+    overwrite_gpt(drive, &header, &table);
+
+    return 0;
 }

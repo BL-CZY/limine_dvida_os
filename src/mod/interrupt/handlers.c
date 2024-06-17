@@ -12,6 +12,11 @@ typedef struct interrupt_info
 
 void page_fault(interrupt_info_t *info) {
     kprintf("page fault: %b\n", info->err);
+    while(1)
+    {
+        asm("hlt");
+    }
+    
 }
 
 void irq_0() {

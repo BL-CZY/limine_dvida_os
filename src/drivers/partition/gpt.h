@@ -3,6 +3,9 @@
 
 #include "drivers/ata/pata.h"
 #include "mod/algorithms/guid.h"
+#include "mod/algorithms/crc32.h"
+#include "mod/mmu/mem_utils.h"
+#include "drivers/ata/pata.h"
 
 typedef struct gpt_table_entry {
     guid_t partition_type_guid;
@@ -15,7 +18,7 @@ typedef struct gpt_table_entry {
 
 typedef struct gpt_table {
     uint16_t entry_count;
-    gpt_table_entry_t entries[32]; // the maximum number should be 32
+    gpt_table_entry_t entries[128]; // the maximum number should be 128
 } gpt_table_t;
 
 typedef struct gpt_efi_header {
@@ -42,7 +45,7 @@ bool is_entry_unused(uint8_t *buffer);
 //this function creates a new gpt table
 void create_gpt(ata_drive_t *drive);
 
-void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint32_t *entry_count);
+void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint16_t *entry_count);
 void write_entry_to_buffer(gpt_table_entry_t *input, uint8_t *result);
 
 #define READ_GPT_ERR_NO_GPT 1
@@ -55,5 +58,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
 void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *table);
 
 int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name);
+
+int delete_partition(ata_drive_t *drive, size_t index);
 
 #endif

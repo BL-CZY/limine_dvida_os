@@ -5,8 +5,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "drivers/partition/gpt.h"
-
 uint8_t big_endian_to_uint8(uint8_t *buffer);
 uint16_t big_endian_to_uint16(uint8_t *buffer);
 uint32_t big_endian_to_uint32(uint8_t *buffer);
