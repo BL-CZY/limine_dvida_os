@@ -187,6 +187,27 @@ void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint32_t *entry_coun
     }
 }
 
+void write_entry_to_buffer(gpt_table_entry_t *input, uint8_t *result) {
+    // guid
+    guid_to_buffer(&input->partition_type_guid, result);
+    guid_to_buffer(&input->unique_partition_guid, result + 16);
+
+    // start and end lba
+    uint64_to_little_endian(input->start_lba, result + 32);
+    uint64_to_little_endian(input->end_lba, result + 40);
+
+    // flags
+    uint64_to_little_endian(input->flags, result + 48);
+
+    // name
+    for(int i = 0; i < 36; ++i) {
+        uint8_t buffer[2];
+        uint16_to_little_endian(input->utf16_name[i], buffer);
+        result[56 + (i * 2)] = buffer[0];
+        result[56 + (i * 2) + 1] = buffer[1];
+    }
+}
+
 //* error codes:
 /**
     0: no error
@@ -288,6 +309,27 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
     return 0;
 }
 
+void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *table) {
+    // compute the array
+    uint8_t array_buffer[header->entry_num * header->entry_size];
+
+    for(int i = 0; i < header->entry_num; ++i) {
+        write_entry_to_buffer(&table->entries[i], array_buffer + (i * header->entry_size));
+    }
+
+    // calculate the array crc32
+    header->array_crc32 = full_crc(array_buffer, header->entry_num * header->entry_size);
+
+    // zero out the header crc32
+    header->header_crc32 = 0;
+
+    // TODO convert the header into a buffer
+
+    // TODO calculate the crc32 of the arrya
+
+    // TODO write to the disk
+}
+
 // error codes:
 // 1: GPT not present
 // 2: crc32 doesn't match for header
@@ -346,4 +388,7 @@ int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, 
     for(int i = 0; i < 36; ++i) {
         target->utf16_name[i] = name[i];
     }
+
+    // increment the entry count
+    ++table.entry_count;
 }
