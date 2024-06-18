@@ -2,7 +2,7 @@
 #define GPT_H
 
 #include "hal/storage/hal_storage.h"
-#include "hal/structs/hal_fs_structs.h"
+#include "hal/structs/hal_storage_structs.h"
 #include "mod/algorithms/guid.h"
 #include "mod/algorithms/crc32.h"
 #include "mod/mmu/mem_utils.h"

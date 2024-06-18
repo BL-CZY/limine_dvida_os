@@ -20,7 +20,7 @@ void page_fault(interrupt_info_t *info) {
 }
 
 void irq_0() {
-    on_update();
+    on_timer_timeout();
 }
 
 void irq_1() {

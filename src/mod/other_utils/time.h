@@ -8,7 +8,7 @@
 extern long long unsigned int global_timer;
 extern void (*update_list[256])();
 
-void on_update();
+void on_timer_timeout();
 //return -1 if not succeed
 //return the index in the list if succeed
 int register_update_function(void (*func)());
