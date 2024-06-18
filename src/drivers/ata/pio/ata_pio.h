@@ -8,6 +8,7 @@
 
 #include "mod/other_utils/asm_utils.h"
 #include "mod/other_utils/handle_utils.h"
+#include "drivers/partition/gpt.h"
 
 // ATA Ports
 #define ATA_DATA_PORT_OFFSET 0

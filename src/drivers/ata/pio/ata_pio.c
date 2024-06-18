@@ -88,6 +88,18 @@ int identify_ata_drive(storage_device_t *drive) {
         drive->serial[(i * 2) + 1] = (uint8_t)(drive_info_buffer[34 + i]);
     }
 
+    // identify gpt header
+
+    uint8_t buffer[512];
+    pio_read_sectors(drive, 1, 1, buffer);
+
+    if(!is_gpt_present(buffer)) {
+        create_gpt(drive);
+    } else {
+        kprintf("GPT Partition Table identified\n");
+        read_gpt(drive, &drive->device_gpt_header, &drive->device_gpt_table);
+    }
+
     // the log part
 
     kprintf("ATA drive identified on port %x\n", drive->base_port);

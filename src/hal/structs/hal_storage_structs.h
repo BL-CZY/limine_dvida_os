@@ -2,6 +2,7 @@
 #define HAL_STORAGE_STRUCTS_H
 
 #include <stdint.h>
+#include "./hal_fs_structs.h"
 
 #define DISKIO_NO_ERR 0
 #define DISKIO_ERR_DEVICE_UNIDENTIFIED 1
@@ -28,6 +29,9 @@ typedef struct storage_device {
     uint64_t lba48_sector_count;
 
     uint8_t serial[20];
+
+    gpt_efi_header_t device_gpt_header;
+    gpt_table_t device_gpt_table;
 } storage_device_t;
 
 #endif

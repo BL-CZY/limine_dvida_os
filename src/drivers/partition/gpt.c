@@ -6,6 +6,9 @@
 static const uint8_t GPT_EFI_SIGNATURE[8] = {0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54};
 static const uint8_t EFI_REVISION[4] = {0x00, 0x00, 0x01, 0x00};
 
+/**
+ * takes in the read buffer and identify if the gpt header is present in the buffer
+*/
 bool is_gpt_present(uint8_t *buffer) {
     for(int i = 0; i < 8; ++i) {
         if(buffer[i] != GPT_EFI_SIGNATURE[i]) {
@@ -15,6 +18,9 @@ bool is_gpt_present(uint8_t *buffer) {
     return true;
 }
 
+/**
+ * takes a gpt array entry as a buffer and check if it has empty type guid
+*/
 bool is_entry_unused(uint8_t *buffer) {
     for(int i = 0; i < 16; ++i) {
         if(buffer[i] != 0) {
@@ -25,6 +31,10 @@ bool is_entry_unused(uint8_t *buffer) {
     return true;
 }
 
+/**
+ * takes the target drive and initialize a new gpt on the device
+ * ! takes no responsibility of nuking the existing table
+*/
 void create_gpt(storage_device_t *drive) {
     #pragma region header_struct
 
@@ -146,6 +156,28 @@ void create_gpt(storage_device_t *drive) {
     // header crc32
     uint32_to_little_endian(result.header_crc32, (efi_header + 16));
 
+    guid_t empty_guid = {
+        .data1 = {0, 0, 0, 0},
+        .data2 = {0, 0},
+        .data3 = {0, 0},
+        .data4 = {0, 0},
+        .data5 = {0, 0, 0, 0, 0},
+    }; 
+
+    // update gpt in the drive
+    drive->device_gpt_header = result;
+    // array is empty
+    for(int i = 0; i < 128; ++i) {
+        cpy_guid(&empty_guid, &drive->device_gpt_table.entries[i].partition_type_guid);
+        cpy_guid(&empty_guid, &drive->device_gpt_table.entries[i].unique_partition_guid);
+        drive->device_gpt_table.entries[i].start_lba = 0;
+        drive->device_gpt_table.entries[i].end_lba = 0;
+        drive->device_gpt_table.entries[i].flags = 0;
+        for(int j = 0; j < 36; ++j) {
+            drive->device_gpt_table.entries[i].utf16_name[j] = 0;
+        }
+    }
+
     // write to the disk
 
     // primary
@@ -159,6 +191,10 @@ void create_gpt(storage_device_t *drive) {
     #pragma endregion
 }
 
+/**
+ * takes the table entry as a buffer, a result struct, and the entry count
+ * converts the buffer into the struct, increment the entry_count if the entry is used
+*/
 void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint16_t *entry_count) {
     if(!is_entry_unused(buffer)) {
         ++*entry_count;
@@ -183,6 +219,10 @@ void read_entry(uint8_t *buffer, gpt_table_entry_t *result, uint16_t *entry_coun
     }
 }
 
+/**
+ * takes in the input struct and a buffer
+ * converts the struct into the result buffer
+*/
 void write_entry_to_buffer(gpt_table_entry_t *input, uint8_t *result) {
     // guid
     guid_to_buffer(&input->partition_type_guid, result);
@@ -206,10 +246,13 @@ void write_entry_to_buffer(gpt_table_entry_t *input, uint8_t *result) {
 
 //* error codes:
 /**
-    0: no error
-    1: gpt not present    
-    2: crc32 doesn't match for header
-    3: crc32 doesn't match for array
+ * takes in the drive and two result structs -- header and table
+ * reads the gpt table in the drive and convert them into the result structs
+ * error codes:
+ * 0: no error
+ * 1: gpt not present    
+ * 2: crc32 doesn't match for header
+ * 3: crc32 doesn't match for array
 */
 int read_gpt(storage_device_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table) {
     uint8_t efi_header_buffer[512];
@@ -305,6 +348,11 @@ int read_gpt(storage_device_t *drive, gpt_efi_header_t *result_header, gpt_table
     return 0;
 }
 
+/** this function 
+ * updates the crc32 of a modified header and table
+ * update them to the drive
+ * and write them to the disk
+*/
 void overwrite_gpt(storage_device_t *drive, gpt_efi_header_t *header, gpt_table_t *table) {
     // compute the array
     uint8_t array_buffer[header->entry_num * header->entry_size];
@@ -368,6 +416,10 @@ void overwrite_gpt(storage_device_t *drive, gpt_efi_header_t *header, gpt_table_
     header->header_crc32 = full_crc(header_buffer, 512);
     uint32_to_little_endian(header->header_crc32, header_buffer + 16);
 
+    // update the structs in the drive
+    drive->device_gpt_header = *header;
+    drive->device_gpt_table = *table;
+
     // write to the disk
     // primary
     write_sectors(drive, 1, 1, header_buffer);
@@ -378,11 +430,16 @@ void overwrite_gpt(storage_device_t *drive, gpt_efi_header_t *header, gpt_table_
     write_sectors(drive, -33, 32, array_buffer);
 }
 
-// error codes:
-// 1: GPT not present
-// 2: crc32 doesn't match for header
-// 3: crc32 doesn't match for awway
-// 4: no more entries
+/**
+ * takes in the target drive, type guid, start lba, length, and name of the partition to be created
+ * writes them into the gpt table of the drive
+ *  
+ * error codes:
+ * 1: GPT not present
+ * 2: crc32 doesn't match for header
+ * 3: crc32 doesn't match for awway
+ * 4: no more entries
+ */
 int create_partition(storage_device_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name) {
     gpt_efi_header_t header;
     gpt_table_t table;
@@ -445,7 +502,17 @@ int create_partition(storage_device_t *drive, guid_t *type_guid, uint64_t start_
     return 0;
 }
 
-// error code 4: index too large
+/**
+ * takes in the target drive and the index of the entry to be deleted
+ * deletes the entry from the partition table
+ * ! and nukes all the data in the range represented in the entry
+ * error codes:
+ * 0: no error
+ * 1: gpt not present    
+ * 2: crc32 doesn't match for header
+ * 3: crc32 doesn't match for array
+ * 5: index too large
+*/
 int delete_partition(storage_device_t *drive, size_t index) {
     gpt_efi_header_t header;
     gpt_table_t table;

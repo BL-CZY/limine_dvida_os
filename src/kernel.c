@@ -14,7 +14,7 @@ void kernel_main() {
 
     ata_drive_init();
     kprintf("\n");
-
+    
     current_io_state = stdin_command;
     kprintf("root > ");
     
