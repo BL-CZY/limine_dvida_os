@@ -25,7 +25,7 @@ bool is_entry_unused(uint8_t *buffer) {
     return true;
 }
 
-void create_gpt(ata_drive_t *drive) {
+void create_gpt(storage_device_t *drive) {
     #pragma region header_struct
 
     uint64_t alt_lba;
@@ -147,15 +147,14 @@ void create_gpt(ata_drive_t *drive) {
     uint32_to_little_endian(result.header_crc32, (efi_header + 16));
 
     // write to the disk
-    // TODO use DMA
 
     // primary
-    pio_write_sector(drive, 1, 1, efi_header);
-    pio_write_sector(drive, 2, 32, partition_array);
+    write_sectors(drive, 1, 1, efi_header);
+    write_sectors(drive, 2, 32, partition_array);
 
     // secondary
-    pio_write_sector(drive, -1, 1, efi_header);
-    pio_write_sector(drive, -33, 32, partition_array);
+    write_sectors(drive, -1, 1, efi_header);
+    write_sectors(drive, -33, 32, partition_array);
 
     #pragma endregion
 }
@@ -212,9 +211,9 @@ void write_entry_to_buffer(gpt_table_entry_t *input, uint8_t *result) {
     2: crc32 doesn't match for header
     3: crc32 doesn't match for array
 */
-int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table) {
+int read_gpt(storage_device_t *drive, gpt_efi_header_t *result_header, gpt_table_t *result_table) {
     uint8_t efi_header_buffer[512];
-    pio_read_sector(drive, 1, 1, efi_header_buffer);
+    read_sectors(drive, 1, 1, efi_header_buffer);
 
     if(!is_gpt_present(efi_header_buffer)) {
         // gpt not present
@@ -288,7 +287,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
 
     // read the array
     uint8_t array_buffer[result_header->entry_size * result_header->entry_num];
-    pio_read_sector(drive, result_header->partition_array_start_lba, result_header->entry_size * result_header->entry_num / 512, array_buffer);
+    read_sectors(drive, result_header->partition_array_start_lba, result_header->entry_size * result_header->entry_num / 512, array_buffer);
 
     // verify the crc32
     if(!(full_crc(array_buffer, result_header->entry_size * result_header->entry_num) == result_header->array_crc32)) {
@@ -306,7 +305,7 @@ int read_gpt(ata_drive_t *drive, gpt_efi_header_t *result_header, gpt_table_t *r
     return 0;
 }
 
-void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *table) {
+void overwrite_gpt(storage_device_t *drive, gpt_efi_header_t *header, gpt_table_t *table) {
     // compute the array
     uint8_t array_buffer[header->entry_num * header->entry_size];
 
@@ -371,12 +370,12 @@ void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *ta
 
     // write to the disk
     // primary
-    pio_write_sector(drive, 1, 1, header_buffer);
-    pio_write_sector(drive, 2, 32, array_buffer);
+    write_sectors(drive, 1, 1, header_buffer);
+    write_sectors(drive, 2, 32, array_buffer);
 
     // secondary
-    pio_write_sector(drive, -1, 1, header_buffer);
-    pio_write_sector(drive, -33, 32, array_buffer);
+    write_sectors(drive, -1, 1, header_buffer);
+    write_sectors(drive, -33, 32, array_buffer);
 }
 
 // error codes:
@@ -384,7 +383,7 @@ void overwrite_gpt(ata_drive_t *drive, gpt_efi_header_t *header, gpt_table_t *ta
 // 2: crc32 doesn't match for header
 // 3: crc32 doesn't match for awway
 // 4: no more entries
-int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name) {
+int create_partition(storage_device_t *drive, guid_t *type_guid, uint64_t start_lba, uint64_t length, uint16_t *name) {
     gpt_efi_header_t header;
     gpt_table_t table;
 
@@ -447,7 +446,7 @@ int create_partition(ata_drive_t *drive, guid_t *type_guid, uint64_t start_lba, 
 }
 
 // error code 4: index too large
-int delete_partition(ata_drive_t *drive, size_t index) {
+int delete_partition(storage_device_t *drive, size_t index) {
     gpt_efi_header_t header;
     gpt_table_t table;
 
@@ -464,6 +463,19 @@ int delete_partition(ata_drive_t *drive, size_t index) {
     if(!is_gpt_present(header.signature)) {
         return 1;
     }
+
+    uint8_t empty_buffer[512];
+
+    for(int i = 0; i < 512; ++i) {
+        empty_buffer[i] = 0;
+    }
+
+    // erase all the data in the partition
+    for(uint64_t i = table.entries[index].start_lba; i <= table.entries[index].end_lba; ++i) {
+        write_sectors(drive, i, 1, empty_buffer);
+    }
+
+    // remove the partition from the table
 
     table.entry_count -= 1;
     guid_t empty_guid = {

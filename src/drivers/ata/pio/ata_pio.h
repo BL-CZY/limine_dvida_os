@@ -30,6 +30,6 @@
 #define ATA_CMD_LBA28 0xE0
 #define ATA_CMD_LBA48 0x40
 
-int identify_ata_drive(ata_drive_t *drive);
+int identify_ata_drive(storage_device_t *drive);
 
 #endif

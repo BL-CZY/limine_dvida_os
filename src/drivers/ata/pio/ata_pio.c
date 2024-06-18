@@ -4,11 +4,11 @@
 
 #include "mod/builtin_shell/stdio.h"
 
-ata_drive_t ata_primary_drive = {
+storage_device_t ata_primary_drive = {
     .identified = false,
     .base_port = 0x1F0,
 };
-ata_drive_t ata_secondary_drive = {
+storage_device_t ata_secondary_drive = {
     .identified = false,
     .base_port = 0x170,
 };
@@ -20,7 +20,7 @@ ata_drive_t ata_secondary_drive = {
  *  2: the drive is not ata
  *  3: error
 */
-int identify_ata_drive(ata_drive_t *drive) {
+int identify_ata_drive(storage_device_t *drive) {
     // send 0xA0 to the drive port to start the process
     outb(drive->base_port + ATA_DRIVE_PORT_OFFSET, ATA_CMD_START_IDENTIFY);
 
@@ -62,6 +62,10 @@ int identify_ata_drive(ata_drive_t *drive) {
     }
 
     drive->identified = true;
+
+    // identified as PATA PIO for now
+    drive->drive_device_type = PATA;
+    drive->dma_available = false;
 
     uint16_t drive_info_buffer[256];
 
@@ -117,8 +121,7 @@ int identify_ata_drive(ata_drive_t *drive) {
  * return 5 if the sector doesn't exist
 */
 
-
-int pio_read_sector(ata_drive_t *drive, int64_t sector_index, uint16_t sector_count, uint8_t *result) {
+int pio_read_sectors(storage_device_t *drive, int64_t sector_index, uint16_t sector_count, uint8_t *result) {
     if(!drive->identified) {
         return 1;
     }
@@ -227,7 +230,7 @@ int pio_read_sector(ata_drive_t *drive, int64_t sector_index, uint16_t sector_co
     return 0;
 }
 
-int pio_write_sector(ata_drive_t *drive, int64_t sector_index, uint16_t sector_count, uint8_t *input) {
+int pio_write_sectors(storage_device_t *drive, int64_t sector_index, uint16_t sector_count, uint8_t *input) {
     if(!drive->identified) {
         // error unidentified drive
         return 1;
