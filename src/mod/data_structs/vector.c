@@ -1,4 +1,5 @@
 #include "./vector.h"
+#include "mod/builtin_shell/stdio.h"
 
 void new_vector(uint32_t data_size, vector_t *result) {
     // create an empty vector with initial size of 8
@@ -48,8 +49,9 @@ void vector_push(void *data, vector_t *vector) {
     // append the element
     for(uint32_t i = 0; i < vector->element_size; ++i)
     {
-        ((uint8_t *)vector->start_addr)[(vector->element_size * vector->element_amount) + i] = ((uint8_t *)data)[i];
+        ((uint8_t *)vector->start_addr)[(vector->element_size * (vector->element_amount - 1)) + i] = ((uint8_t *)data)[i];
     }
+    // kprintf("%x ", ((uint8_t *)vector->start_addr)[(vector->element_size * vector->element_amount)]);
 }
 
 void vector_pop(vector_t *vector) {
