@@ -1,13 +1,6 @@
 #include "./vector.h"
 
-typedef struct vector {
-   uint32_t element_size; // element size in byte
-   void *start_addr;
-   uint32_t element_amount;
-   uint32_t max_element_amount;
-} vector_t;
-
-vector_t *new_vector(uint32_t data_size, vector_t *result) {
+void new_vector(uint32_t data_size, vector_t *result) {
     // create an empty vector with initial size of 8
     result->element_size = data_size;
     result->max_element_amount = 8;
@@ -21,10 +14,34 @@ uint32_t vector_size(vector_t *vector) {
     return vector->element_amount;
 }
 
+void vector_get(vector_t *vector, uint32_t index, void *result) {
+    // do nothing if the index is too large
+    if(index >= vector->element_amount) {
+        return;
+    }
+
+    // put the value into result
+    for(uint32_t i = 0; i < vector->element_size; ++i) {
+        ((uint8_t *)result)[i] = ((uint8_t *)vector->start_addr)[(vector->element_size * index) + i];
+    }
+}
+
+void vector_set(vector_t *vector, uint32_t index, void *input) {
+    // do nothing if the index is too large
+    if(index >= vector->element_amount) {
+        return;
+    }
+
+    // put the input into the vector
+    for(uint32_t i = 0; i < vector->element_size; ++i) {
+        ((uint8_t *)vector->start_addr)[(vector->element_size * index) + i] = ((uint8_t *)input)[i];
+    }
+}
+
 void vector_push(void *data, vector_t *vector) {
     // if the size is too little reallocate the vector
     if(++vector->element_amount >= vector->max_element_amount) {
-        vector->max_element_amount * 2;
+        vector->max_element_amount *= 2;
         krealloc(vector->start_addr, vector->max_element_amount * vector->element_size);
     }
 
@@ -46,5 +63,55 @@ void vector_pop(vector_t *vector) {
     // clear the data
     for(uint32_t i = 0; i < vector->element_size; ++i) {
         ((uint8_t *)vector->start_addr)[(vector->element_size * vector->element_amount) + i - 1] = 0;
+    }
+}
+
+void vector_insert(vector_t *vector, void *data, uint32_t index) {
+    // if the index is too large, do nothing
+    if(index > vector->element_amount) {
+        return;
+    }
+
+    // if the size is too little reallocate the vector
+    if(++vector->element_amount >= vector->max_element_amount) {
+        vector->max_element_amount *= 2;
+        krealloc(vector->start_addr, vector->max_element_amount * vector->element_size);
+    }
+
+    // reserve space for the inserted data
+    for(uint32_t i = vector->element_amount; i <= index + 1; --i) {
+        // copy the value of the previous element
+        for(uint32_t j = 0; j < vector->element_size; ++j) {
+            ((uint8_t *)vector->start_addr)[(vector->element_size * i)] = ((uint8_t *)vector->start_addr)[(vector->element_size * (i - 1))];
+        }
+    }
+
+    // copy the value into the reserved space
+    for(uint32_t i = 0; i < vector->element_size; ++i)
+    {
+        ((uint8_t *)vector->start_addr)[(vector->element_size * index) + i] = ((uint8_t *)data)[i];
+    }
+}
+
+void vector_remove(vector_t *vector, uint32_t index) {
+    // if the index is too large, do nothing
+    if(index > vector->element_amount) {
+        return;
+    }
+
+    vector->element_amount--;
+
+    // move the values to one before
+    for(uint32_t i = index; i <= vector->element_amount; ++i) {
+        // copy the value of the next element
+        for(uint32_t j = 0; j < vector->element_size; ++j) {
+            ((uint8_t *)vector->start_addr)[(vector->element_size * i)] = ((uint8_t *)vector->start_addr)[(vector->element_size * (i + 1))];
+        }
+    }
+
+    // remove the last data
+    for(uint32_t i = 0; i < vector->element_size; ++i)
+    {
+        ((uint8_t *)vector->start_addr)[(vector->element_size * vector->element_amount) + i] = 0;
     }
 }

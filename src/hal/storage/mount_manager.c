@@ -37,5 +37,5 @@ int chroot(storage_device_t *drive, uint16_t index) {
         return 5;
     }
 
-    
+    return 0;
 }
