@@ -41,7 +41,7 @@ void *kmalloc(size_t size) {
         return NULL;
     }
 
-    *(uint32_t *)start = current_continuous_block;
+    *(uint32_t *)start = current_continuous_block - 1;
     return (void *)(start + 4);
 }
 
@@ -75,12 +75,12 @@ void *krealloc(void *target, size_t new_size) {
 
     void *start = target;
     uint32_t old_size = *(uint32_t *)(start - 4);
-    void *new_address = kmalloc(new_size * 4);
+    void *new_address = kmalloc(new_size);
     if(new_address == NULL) {
         return NULL;
     }
 
-    memmove(new_address, start, old_size < new_size ? old_size : new_size);
+    memmove(new_address, start, old_size * 4);
     kfree(target);
     return new_address;
 }

@@ -41,9 +41,9 @@ void vector_set(vector_t *vector, uint32_t index, void *input) {
 
 void vector_push(void *data, vector_t *vector) {
     // if the size is too little reallocate the vector
-    if(++vector->element_amount >= vector->max_element_amount) {
+    if(++vector->element_amount > vector->max_element_amount) {
         vector->max_element_amount *= 2;
-        krealloc(vector->start_addr, vector->max_element_amount * vector->element_size);
+        vector->start_addr = krealloc(vector->start_addr, vector->max_element_amount * vector->element_size);
     }
 
     // append the element
@@ -75,9 +75,9 @@ void vector_insert(vector_t *vector, void *data, uint32_t index) {
     }
 
     // if the size is too little reallocate the vector
-    if(++vector->element_amount >= vector->max_element_amount) {
+    if(++vector->element_amount > vector->max_element_amount) {
         vector->max_element_amount *= 2;
-        krealloc(vector->start_addr, vector->max_element_amount * vector->element_size);
+        vector->start_addr = krealloc(vector->start_addr, vector->max_element_amount * vector->element_size);
     }
 
     // reserve space for the inserted data

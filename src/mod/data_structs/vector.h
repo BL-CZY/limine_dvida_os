@@ -12,6 +12,7 @@ typedef struct vector {
    uint32_t max_element_amount;
 } vector_t;
 
+uint32_t vector_size(vector_t *vector);
 void new_vector(uint32_t data_size, vector_t *result);
 void vector_get(vector_t *vector, uint32_t index, void *result);
 void vector_set(vector_t *vector, uint32_t index, void *input);
