@@ -11,7 +11,6 @@
       pkgsCross.x86_64-embedded.buildPackages.gcc
       pkgsCross.x86_64-embedded.buildPackages.libgcc
       pkgsCross.x86_64-embedded.buildPackages.binutils
-      meson
     ];
     
     shellHook = ''
