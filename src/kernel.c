@@ -36,14 +36,27 @@ void kernel_main() {
     vector_push(&test_val, &test);
     test_val = 0x9;
     vector_push(&test_val, &test);
+    for(uint32_t i = 0; i < vector_size(&test); ++i) {
+        uint32_t test_res;
+        vector_get(&test, i, &test_res);
+        kprintf("%x ", test_res);
+    }
+    kprintf("\n");
     test_val = 0x21938923;
     vector_insert(&test, &test_val, 3);
+    for(uint32_t i = 0; i < vector_size(&test); ++i) {
+        uint32_t test_res;
+        vector_get(&test, i, &test_res);
+        kprintf("%x ", test_res);
+    }
+    kprintf("\n");
     vector_remove(&test, 2);
     for(uint32_t i = 0; i < vector_size(&test); ++i) {
         uint32_t test_res;
         vector_get(&test, i, &test_res);
         kprintf("%x ", test_res);
     }
+    kprintf("\n");
     
     current_io_state = stdin_command;
     kprintf("root > ");

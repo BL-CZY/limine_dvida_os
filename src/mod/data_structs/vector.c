@@ -81,10 +81,10 @@ void vector_insert(vector_t *vector, void *data, uint32_t index) {
     }
 
     // reserve space for the inserted data
-    for(uint32_t i = vector->element_amount; i <= index + 1; --i) {
+    for(uint32_t i = vector->element_amount - 1; i >= index + 1; --i) {
         // copy the value of the previous element
         for(uint32_t j = 0; j < vector->element_size; ++j) {
-            ((uint8_t *)vector->start_addr)[(vector->element_size * i)] = ((uint8_t *)vector->start_addr)[(vector->element_size * (i - 1))];
+            ((uint8_t *)vector->start_addr)[(vector->element_size * i) + j] = ((uint8_t *)vector->start_addr)[(vector->element_size * (i - 1)) + j];
         }
     }
 
@@ -96,18 +96,20 @@ void vector_insert(vector_t *vector, void *data, uint32_t index) {
 }
 
 void vector_remove(vector_t *vector, uint32_t index) {
+    kprintf("%u ", vector->element_amount);
     // if the index is too large, do nothing
-    if(index > vector->element_amount) {
+    if(index >= vector->element_amount) {
         return;
     }
 
     vector->element_amount--;
+    kprintf("%u ", vector->element_amount);
 
     // move the values to one before
-    for(uint32_t i = index; i <= vector->element_amount; ++i) {
+    for(uint32_t i = index; i < vector->element_amount; ++i) {
         // copy the value of the next element
         for(uint32_t j = 0; j < vector->element_size; ++j) {
-            ((uint8_t *)vector->start_addr)[(vector->element_size * i)] = ((uint8_t *)vector->start_addr)[(vector->element_size * (i + 1))];
+            ((uint8_t *)vector->start_addr)[(vector->element_size * i) + j] = ((uint8_t *)vector->start_addr)[(vector->element_size * (i + 1)) + j];
         }
     }
 
