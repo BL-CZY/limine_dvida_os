@@ -28,4 +28,17 @@ you also need to get the limine repo<br />
 <h1>Run</h1>
 To run, a raw disk image called storage.img must be created<br />
 You can use qemu-img to do so<br />
-Then, simply run <code>./run.sh</code> would emulate the iso in qemu
+Then, simply run <code>./run</code> would emulate the iso in qemu
+
+<h1>WIPs</h1>
+<p>file system driver</p>
+<p>dynamic memory data structures</p>
+<p>HAL</p>
+
+<h1>Future WIPs</h1>
+<p>ATA DMA</p>
+<p>PCI</p>
+<p>APIC</P>
+<p>SysCalls</P>
+<p>arch</p>
+<p>scheduler</p>
