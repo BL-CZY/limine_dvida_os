@@ -17,10 +17,22 @@ void kernel_main() {
     kprintf("\n");
 
     vector_t test;
-    uint32_t test_val = 10;
     new_vector(sizeof(uint32_t), &test);
-    test.push(((void *)&test_val), &test.body);
-    
+    for(uint32_t i = 0; i < 10; ++i) {
+        test.push(&test, &i);
+    }
+
+    test.pop(&test);
+    uint32_t temp_val = 30;
+    test.insert(&test, &temp_val, 3);
+    // test.remove(&test, 2);
+
+    for(uint32_t i = 0; i < test.count; ++i) {
+        uint32_t temp;
+        test.get(&test, i, &temp);
+        kprintf("%u ", temp);
+    }
+
     current_io_state = stdin_command;
     kprintf("root > ");
     

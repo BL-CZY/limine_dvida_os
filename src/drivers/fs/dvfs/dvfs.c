@@ -67,26 +67,26 @@ int identify_dvfs(storage_device_t *drive, gpt_table_entry_t *entry, dvfs_t *res
     return 0;
 }
 
-int read_dir(dvfs_t *fs, vector_body_t *path, dvfs_dir_t *result) {
+int read_dir(dvfs_t *fs, vector_t *path, dvfs_dir_t *result) {
     return 0;
 }
 
-int read_regfile(dvfs_t *fs, vector_body_t *path, dvfs_regfile_content_t *result) {
+int read_regfile(dvfs_t *fs, vector_t *path, dvfs_regfile_content_t *result) {
     return 0;
 }
 
-int create_dir(dvfs_t *fs, vector_body_t *path, char **name) {
+int create_dir(dvfs_t *fs, vector_t *path, char **name) {
     return 0;
 }
 
-int create_regfile(dvfs_t *fs, vector_body_t *path, char **name, char **extension) {
+int create_regfile(dvfs_t *fs, vector_t *path, char **name, char **extension) {
     return 0;
 }
  
-int delete_dir(dvfs_t *fs, vector_body_t *path, bool recursive) {
+int delete_dir(dvfs_t *fs, vector_t *path, bool recursive) {
     return 0;
 }
 
-int delete_regfile(dvfs_t *fs, vector_body_t *path) {
+int delete_regfile(dvfs_t *fs, vector_t *path) {
     return 0;
 }

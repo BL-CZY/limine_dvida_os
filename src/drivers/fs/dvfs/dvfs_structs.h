@@ -51,12 +51,12 @@ typedef struct dvfs_block {
 } dvfs_block_t;
 
 typedef struct dvfs_regfile_content {
-    vector_body_t content; // elements are uint8
+    vector_t content; // elements are uint8
     uint32_t flags;
 } dvfs_regfile_content_t;
 
 typedef struct dvfs_dir {
-    vector_body_t files; // elements are dvfs_file
+    vector_t files; // elements are dvfs_file
     uint32_t flags;
 } dvfs_dir_t;
 
@@ -66,7 +66,7 @@ typedef struct dvfs_header {
     uint64_t root_lba;
     uint64_t bitmap_length; // in bytes
     uint8_t reserved[232];
-    vector_body_t bitmap;
+    vector_t bitmap;
 } dvfs_header_t;
 
 typedef struct dvfs {
