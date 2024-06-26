@@ -76,6 +76,11 @@ void vector_insert(vector_t *vector, void *data, uint32_t index) {
         return;
     }
 
+    if(index == vector->count - 1) {
+        vector_push(vector, data);
+        return;
+    }
+
     // if the size is too little reallocate the vector
     if(++vector->count > vector->max_element_amount) {
         vector->max_element_amount *= 2;
