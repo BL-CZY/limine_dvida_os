@@ -98,14 +98,16 @@ void vector_insert(vector_t *vector, void *data, uint32_t index) {
 }
 
 void vector_remove(vector_t *vector, uint32_t index) {
-    kprintf("%u ", vector->count);
     // if the index is too large, do nothing
     if(index >= vector->count) {
         return;
     }
 
     vector->count--;
-    kprintf("%u ", vector->count);
+    if(index == vector->count) {
+        vector_pop(vector);
+        return;
+    }
 
     // move the values to one before
     for(uint32_t i = index; i < vector->count; ++i) {

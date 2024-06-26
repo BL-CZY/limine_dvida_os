@@ -25,7 +25,7 @@ void kernel_main() {
     test.pop(&test);
     uint32_t temp_val = 30;
     test.insert(&test, &temp_val, 3);
-    // test.remove(&test, 2);
+    test.remove(&test, 2);
 
     for(uint32_t i = 0; i < test.count; ++i) {
         uint32_t temp;
