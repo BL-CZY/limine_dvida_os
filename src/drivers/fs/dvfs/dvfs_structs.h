@@ -18,17 +18,21 @@ enum dvfs_file_type {
     DIR,
 };
 
+// empty slot has 0000
+
+// type code: 0001
 typedef struct dvfs_file_reg {
     uint8_t name[220]; // utf-8
     uint8_t extension[24]; // utf-8
     uint64_t block_addr;
-    uint32_t flags;
+    uint32_t flags; // the 4 least significant bits are the type bits
 } dvfs_file_reg_t;
 
+// type code: 0010
 typedef struct dvfs_file_dir {
     uint8_t name[244]; // utf-8
     uint64_t block_addr;
-    uint32_t flags;
+    uint32_t flags; // the 4 least significant bits are the type bits
 } dvfs_file_dir_t;
 
 typedef struct dvfs_file {
@@ -47,12 +51,12 @@ typedef struct dvfs_block {
 } dvfs_block_t;
 
 typedef struct dvfs_regfile_content {
-    vector_t content; // elements are uint8
+    vector_body_t content; // elements are uint8
     uint32_t flags;
 } dvfs_regfile_content_t;
 
 typedef struct dvfs_dir {
-    vector_t files; // elements are dvfs_file
+    vector_body_t files; // elements are dvfs_file
     uint32_t flags;
 } dvfs_dir_t;
 
@@ -60,8 +64,9 @@ typedef struct dvfs_header {
     uint8_t signature[4]; // DVFS
     uint32_t revision;
     uint64_t root_lba;
-    uint8_t reserved[240];
-    vector_t bitmap;
+    uint64_t bitmap_length; // in bytes
+    uint8_t reserved[232];
+    vector_body_t bitmap;
 } dvfs_header_t;
 
 typedef struct dvfs {
@@ -70,14 +75,5 @@ typedef struct dvfs {
     dvfs_header_t header;
     dvfs_dir_t root;
 } dvfs_t;
-
-int init_dvfs(storage_device_t *drive, gpt_table_entry_t *entry);
-int identify_dvfs(storage_device_t *drive, gpt_table_entry_t *entry, dvfs_t *result);
-int read_dir(dvfs_t *fs, vector_t *path, dvfs_dir_t *result);
-int read_regfile(dvfs_t *fs, vector_t *path, dvfs_regfile_content_t *result);
-int create_dir(dvfs_t *fs, vector_t *path, char **name);
-int create_regfile(dvfs_t *fs, vector_t *path, char **name, char **extension);
-int delete_dir(dvfs_t *fs, vector_t *path, bool recursive);
-int delete_regfile(dvfs_t *fs, vector_t *path);
 
 #endif

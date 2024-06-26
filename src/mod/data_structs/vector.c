@@ -3,19 +3,25 @@
 
 void new_vector(uint32_t data_size, vector_t *result) {
     // create an empty vector with initial size of 8
-    result->element_size = data_size;
-    result->max_element_amount = 8;
-    result->element_amount = 0;
+    result->body.element_size = data_size;
+    result->body.max_element_amount = 8;
+    result->body.element_amount = 0;
 
     // malloc the address
-    result->start_addr = kmalloc(data_size * result->max_element_amount);
+    result->body.start_addr = kmalloc(data_size * result->body.max_element_amount);
+    result->get = vector_get;
+    result->set = vector_set;
+    result->push = vector_push;
+    result->pop = vector_pop;
+    result->insert = vector_insert;
+    result->remove = vector_remove;
 }
 
-uint32_t vector_size(vector_t *vector) {
+uint32_t vector_size(vector_body_t *vector) {
     return vector->element_amount;
 }
 
-void vector_get(vector_t *vector, uint32_t index, void *result) {
+void vector_get(vector_body_t *vector, uint32_t index, void *result) {
     // do nothing if the index is too large
     if(index >= vector->element_amount) {
         return;
@@ -27,7 +33,7 @@ void vector_get(vector_t *vector, uint32_t index, void *result) {
     }
 }
 
-void vector_set(vector_t *vector, uint32_t index, void *input) {
+void vector_set(vector_body_t *vector, uint32_t index, void *input) {
     // do nothing if the index is too large
     if(index >= vector->element_amount) {
         return;
@@ -39,7 +45,7 @@ void vector_set(vector_t *vector, uint32_t index, void *input) {
     }
 }
 
-void vector_push(void *data, vector_t *vector) {
+void vector_push(void *data, vector_body_t *vector) {
     // if the size is too little reallocate the vector
     if(++vector->element_amount > vector->max_element_amount) {
         vector->max_element_amount *= 2;
@@ -54,7 +60,7 @@ void vector_push(void *data, vector_t *vector) {
     // kprintf("%x ", ((uint8_t *)vector->start_addr)[(vector->element_size * vector->element_amount)]);
 }
 
-void vector_pop(vector_t *vector) {
+void vector_pop(vector_body_t *vector) {
     // do nothing if the vector is empty
     if(vector->element_amount == 0) {
         return;
@@ -68,7 +74,7 @@ void vector_pop(vector_t *vector) {
     }
 }
 
-void vector_insert(vector_t *vector, void *data, uint32_t index) {
+void vector_insert(vector_body_t *vector, void *data, uint32_t index) {
     // if the index is too large, do nothing
     if(index > vector->element_amount) {
         return;
@@ -95,7 +101,7 @@ void vector_insert(vector_t *vector, void *data, uint32_t index) {
     }
 }
 
-void vector_remove(vector_t *vector, uint32_t index) {
+void vector_remove(vector_body_t *vector, uint32_t index) {
     kprintf("%u ", vector->element_amount);
     // if the index is too large, do nothing
     if(index >= vector->element_amount) {
@@ -114,8 +120,7 @@ void vector_remove(vector_t *vector, uint32_t index) {
     }
 
     // remove the last data
-    for(uint32_t i = 0; i < vector->element_size; ++i)
-    {
+    for(uint32_t i = 0; i < vector->element_size; ++i) {
         ((uint8_t *)vector->start_addr)[(vector->element_size * vector->element_amount) + i] = 0;
     }
 }

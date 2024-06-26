@@ -17,46 +17,9 @@ void kernel_main() {
     kprintf("\n");
 
     vector_t test;
-    new_vector(4, &test);
-    uint32_t test_val = 0x1;
-    vector_push(&test_val, &test);
-    test_val = 0x2;
-    vector_push(&test_val, &test);
-    test_val = 0x3;
-    vector_push(&test_val, &test);
-    test_val = 0x4;
-    vector_push(&test_val, &test);
-    test_val = 0x5;
-    vector_push(&test_val, &test);
-    test_val = 0x6;
-    vector_push(&test_val, &test);
-    test_val = 0x7;
-    vector_push(&test_val, &test);
-    test_val = 0x8;
-    vector_push(&test_val, &test);
-    test_val = 0x9;
-    vector_push(&test_val, &test);
-    for(uint32_t i = 0; i < vector_size(&test); ++i) {
-        uint32_t test_res;
-        vector_get(&test, i, &test_res);
-        kprintf("%x ", test_res);
-    }
-    kprintf("\n");
-    test_val = 0x21938923;
-    vector_insert(&test, &test_val, 3);
-    for(uint32_t i = 0; i < vector_size(&test); ++i) {
-        uint32_t test_res;
-        vector_get(&test, i, &test_res);
-        kprintf("%x ", test_res);
-    }
-    kprintf("\n");
-    vector_remove(&test, 2);
-    for(uint32_t i = 0; i < vector_size(&test); ++i) {
-        uint32_t test_res;
-        vector_get(&test, i, &test_res);
-        kprintf("%x ", test_res);
-    }
-    kprintf("\n");
+    uint32_t test_val = 10;
+    new_vector(sizeof(uint32_t), &test);
+    test.push(((void *)&test_val), &test.body);
     
     current_io_state = stdin_command;
     kprintf("root > ");
