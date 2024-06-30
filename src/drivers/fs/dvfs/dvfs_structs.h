@@ -21,25 +21,25 @@ enum dvfs_file_type {
 // empty slot has 0000
 
 // type code: 0001
-typedef struct dvfs_file_reg {
-    uint8_t name[220]; // utf-8, either fill the buffer or end with a 0
-    uint8_t extension[24]; // utf-8, either fill the buffer or end with a 0
+typedef struct dvfs_reg_fentry {
+    uint8_t name[220]; // ASCII, end with a 0, so max 219
+    uint8_t extension[24]; // ASCII, end with a 0, so max 23
     uint64_t block_addr;
     uint32_t flags; // the 4 least significant bits are the type bits
-} dvfs_file_reg_t;
+} dvfs_reg_fentry_t;
 
 // type code: 0010
-typedef struct dvfs_file_dir {
-    uint8_t name[244]; // utf-8, either fill the buffer or end with a 0
+typedef struct dvfs_dir_fentry {
+    uint8_t name[244]; // ASCII, end with a 0, so max 243
     uint64_t block_addr;
     uint32_t flags; // the 4 least significant bits are the type bits
-} dvfs_file_dir_t;
+} dvfs_dir_fentry_t;
 
 typedef struct dvfs_file {
     enum dvfs_file_type type;
     union {
-        dvfs_file_reg_t reg_file;
-        dvfs_file_dir_t dir_file;
+        dvfs_reg_fentry_t reg_file;
+        dvfs_dir_fentry_t dir_file;
     };
     
 } dvfs_file_t;
@@ -56,9 +56,17 @@ typedef struct dvfs_regfile_content {
 } dvfs_regfile_content_t;
 
 typedef struct dvfs_dir {
+    uint8_t name[244];
     vector_t files; // elements are dvfs_file
     uint32_t flags;
 } dvfs_dir_t;
+
+typedef struct dvfs_reg {
+    uint8_t name[220];
+    uint8_t extension[24];
+    vector_t content; // elements are uint8_t
+    uint32_t flags;
+} dvfs_reg_t;
 
 typedef struct dvfs_header {
     uint8_t signature[4]; // DVFS

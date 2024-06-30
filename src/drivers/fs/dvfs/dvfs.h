@@ -2,12 +2,14 @@
 #define DVFS_H
 
 #include "./dvfs_structs.h"
+#include "mod/other_utils/str_utils.h"
 
 #define SECTOR_SIZE 512
 #define FILE_ENTRY_SIZE 256
-#define DIR_FILE_FILTER 0x0010
-#define REG_FILE_FILTER 0x0001
+#define DIR_FILE_MASK 0x0010
+#define REG_FILE_MASK 0x0001
 #define FILE_ENTRY_FLAG_OFFSET 252
+#define FILE_ENTRY_ADDR_OFFSET 244
 
 int init_dvfs(storage_device_t *drive, gpt_table_entry_t *entry);
 int identify_dvfs(storage_device_t *drive, gpt_table_entry_t *entry, dvfs_t *result);
