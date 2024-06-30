@@ -105,15 +105,6 @@ void terminal_set_resolution(const uint64_t width, const uint64_t height) {
     terminal_height = height/16;
 }
 
-size_t strlen(char* str) {
-    size_t size = 0;
-    while(str[size])
-    {
-        ++size;
-    }
-    return size;
-}
-
 void set_cursor(int row, int col, int remove) {
     //check if the position goes out of the buffer
     uint64_t offset = row * terminal_width + col;

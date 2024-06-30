@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+#include "mod/other_utils/str_utils.h"
+
 enum print_state {
     Print,
     Format,
@@ -23,7 +25,6 @@ extern uint32_t fg_color;
 extern int cursor_blink_phase;
 extern int cursor_blink_speed;
 
-size_t strlen(char* str);
 void update_cursor_blink();
 void set_cursor(int row, int col, int remove);
 void render_char(char character, int row, int col);

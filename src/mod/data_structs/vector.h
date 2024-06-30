@@ -5,17 +5,19 @@
 
 #include "mod/kheap/kheap_utils.h"
 
+typedef struct vector vector_t;
+
 typedef struct vector {
    uint32_t element_size; // element size in byte
    void *start_addr;
    uint32_t count;
    uint32_t max_element_amount;
-   void (*get)(void *vector, uint32_t index, void *result);
-   void (*set)(void *vector, uint32_t index, void *input);
-   void (*push)(void *vector, void *data);
-   void (*pop)(void *vector);
-   void (*insert)(void *vector, void *data, uint32_t index);
-   void (*remove)(void *vector, uint32_t index);
+   void (*get)(vector_t *vector, uint32_t index, void *result);
+   void (*set)(vector_t *vector, uint32_t index, void *input);
+   void (*push)(vector_t *vector, void *data);
+   void (*pop)(vector_t *vector);
+   void (*insert)(vector_t *vector, void *data, uint32_t index);
+   void (*remove)(vector_t *vector, uint32_t index);
 } vector_t;
 
 void vector_get(vector_t *vector, uint32_t index, void *result);

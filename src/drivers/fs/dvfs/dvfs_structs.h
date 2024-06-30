@@ -22,15 +22,15 @@ enum dvfs_file_type {
 
 // type code: 0001
 typedef struct dvfs_file_reg {
-    uint8_t name[220]; // utf-8
-    uint8_t extension[24]; // utf-8
+    uint8_t name[220]; // utf-8, either fill the buffer or end with a 0
+    uint8_t extension[24]; // utf-8, either fill the buffer or end with a 0
     uint64_t block_addr;
     uint32_t flags; // the 4 least significant bits are the type bits
 } dvfs_file_reg_t;
 
 // type code: 0010
 typedef struct dvfs_file_dir {
-    uint8_t name[244]; // utf-8
+    uint8_t name[244]; // utf-8, either fill the buffer or end with a 0
     uint64_t block_addr;
     uint32_t flags; // the 4 least significant bits are the type bits
 } dvfs_file_dir_t;
@@ -65,7 +65,8 @@ typedef struct dvfs_header {
     uint32_t revision;
     uint64_t root_lba;
     uint64_t bitmap_length; // in bytes
-    uint8_t reserved[232];
+    uint32_t block_size; // normally 8, which is 4096 bytes
+    uint8_t reserved[228];
     vector_t bitmap;
 } dvfs_header_t;
 
@@ -73,7 +74,6 @@ typedef struct dvfs {
     storage_device_t *drive;
     gpt_table_entry_t *descriptor;
     dvfs_header_t header;
-    dvfs_dir_t root;
 } dvfs_t;
 
 #endif

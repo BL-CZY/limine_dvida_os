@@ -38,15 +38,15 @@ void help()
 void execute_command()
 {
     //command search
-    if(strcmp(command_buffer, "echo", 4))
+    if(strcmp_withlen(command_buffer, "echo", 4))
     {
         echo();
     }
-    else if(strcmp(command_buffer, "clear", 5))
+    else if(strcmp_withlen(command_buffer, "clear", 5))
     {
         clear();
     }
-    else if(strcmp(command_buffer, "help", 4))
+    else if(strcmp_withlen(command_buffer, "help", 4))
     {
         help();
     }
