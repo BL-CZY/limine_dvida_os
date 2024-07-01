@@ -50,11 +50,6 @@ typedef struct dvfs_block {
     uint32_t flags;
 } dvfs_block_t;
 
-typedef struct dvfs_regfile_content {
-    vector_t content; // elements are uint8
-    uint32_t flags;
-} dvfs_regfile_content_t;
-
 typedef struct dvfs_dir {
     uint8_t name[244];
     vector_t files; // elements are dvfs_file

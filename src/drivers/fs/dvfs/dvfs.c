@@ -207,7 +207,71 @@ int read_dir(dvfs_t *fs, vector_t *path, dvfs_dir_t *result) {
     return 0;
 }
 
-int read_regfile(dvfs_t *fs, vector_t *path, dvfs_regfile_content_t *result) {
+int read_regfile(dvfs_t *fs, vector_t *path, dvfs_reg_t *result) {
+    // init current block address
+    uint64_t current_block_lba = fs->header.root_lba + fs->descriptor->start_lba;
+
+    for(uint32_t i = 0; i < path->count; ++i) {
+        // path is a vector of char *
+        char *str;
+        path->get(path, i, (void *)str);
+
+        while(true) {
+            // read all the files in the current block
+            uint8_t buffer[fs->header.block_size * SECTOR_SIZE];
+            uint32_t file_entry_num = (fs->header.block_size * SECTOR_SIZE / FILE_ENTRY_SIZE) - 1;
+            read_sectors(&fs->drive, current_block_lba, fs->header.block_size, buffer);
+            bool found = false;
+
+            for(uint32_t j = 0; j < file_entry_num; ++j) {
+                uint8_t *current_entry_start = buffer + (j * FILE_ENTRY_SIZE);
+
+                // for every entry, check for the flag
+                uint32_t flags = little_endian_to_uint32(current_entry_start + FILE_ENTRY_FLAG_OFFSET);
+
+                // if it's not a dir, ignore it
+                if((flags & DIR_FILE_MASK) != DIR_FILE_MASK) {
+                    continue;
+                }
+
+                // this part will run if it's a dir
+                // check for the name
+                if(strcmp(str, (char *)(current_entry_start))) {
+                    found = true;
+                    // if it's the same and it's the last element in the path
+                    if(i == path->count - 1) {
+                        // copy the name
+                        for(int k = 0; k < 244; ++k) {
+                            result->name[k] = current_entry_start[k];
+                        }
+
+                        // copy the flags
+                        result->flags = flags;
+
+                        // read the directory
+                        return read_single_dir(fs, little_endian_to_uint64(current_entry_start + FILE_ENTRY_ADDR_OFFSET), result);
+                    }
+
+                    // if this is not the end of the path, end the while loop
+                    break;
+                }
+            }
+
+            if(found) {
+                break;
+            }
+
+            // check for the next block
+            uint64_t next_block_addr = little_endian_to_uint64(buffer + (fs->header.block_size * SECTOR_SIZE) - 12);
+
+            // if we haven't found the corresponding directory and there is no more block, there is an error
+            if(next_block_addr == 0) {
+                return 1;
+            } else {
+                current_block_lba = next_block_addr;
+            }
+        }
+    }
     return 0;
 }
 
