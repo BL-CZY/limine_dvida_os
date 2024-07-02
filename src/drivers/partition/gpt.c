@@ -31,19 +31,46 @@ bool is_entry_unused(uint8_t *buffer) {
     return true;
 }
 
+#define PMBR_OFFSET 446
+
 /**
  * takes the target drive and initialize a new gpt on the device
  * ! takes no responsibility of nuking the existing table
 */
 void create_gpt(storage_device_t *drive) {
-    #pragma region header_struct
-
     uint64_t alt_lba;
     if(drive->is_lba48_supported) {
         alt_lba = drive->lba48_sector_count - 1;
     } else {
         alt_lba = drive->lba28_sector_count - 1;
     }
+
+    #pragma region pmbr
+
+    // write to buffer
+    uint8_t pmbr_buffer[512];
+
+    // 0 out the first 444 bytes
+    for(int i = 0; i < 446; ++i) {
+        pmbr_buffer[i] = 0;
+    }
+
+    pmbr_buffer[PMBR_OFFSET] = 0;
+    pmbr_buffer[PMBR_OFFSET + 1] = 0;
+    pmbr_buffer[PMBR_OFFSET + 2] = 0x2;
+    pmbr_buffer[PMBR_OFFSET + 3] = 0;
+    pmbr_buffer[PMBR_OFFSET + 4] = 0xEE;
+    pmbr_buffer[PMBR_OFFSET + 5] = 0xFF;
+    pmbr_buffer[PMBR_OFFSET + 6] = 0xFF;
+    pmbr_buffer[PMBR_OFFSET + 7] = 0xFF;
+    uint32_to_little_endian(1, pmbr_buffer + PMBR_OFFSET + 8);
+    uint32_to_little_endian((uint32_t)(alt_lba & 0xFFFFFFFF), pmbr_buffer + PMBR_OFFSET + 12);
+    pmbr_buffer[510] = 0x55;
+    pmbr_buffer[511] = 0xAA;
+
+    #pragma endregion
+
+    #pragma region header_struct
 
     // set some basic information
     gpt_efi_header_t result = {
@@ -151,7 +178,7 @@ void create_gpt(storage_device_t *drive) {
     uint32_to_little_endian(result.array_crc32, (efi_header + 88));
 
     // now calculate the crc32 of the header
-    result.header_crc32 = full_crc(efi_header, 512);
+    result.header_crc32 = full_crc(efi_header, 0x5C);
 
     // header crc32
     uint32_to_little_endian(result.header_crc32, (efi_header + 16));
@@ -179,6 +206,9 @@ void create_gpt(storage_device_t *drive) {
     }
 
     // write to the disk
+
+    // MBR
+    write_sectors(drive, 0, 1, pmbr_buffer);
 
     // primary
     write_sectors(drive, 1, 1, efi_header);
@@ -413,7 +443,7 @@ void overwrite_gpt(storage_device_t *drive, gpt_efi_header_t *header, gpt_table_
     memset(header_buffer + 92, 0, 420);
 
     // calculate the crc32
-    header->header_crc32 = full_crc(header_buffer, 512);
+    header->header_crc32 = full_crc(header_buffer, 0x5C);
     uint32_to_little_endian(header->header_crc32, header_buffer + 16);
 
     // update the structs in the drive

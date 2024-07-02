@@ -59,6 +59,8 @@ typedef struct storage_device {
     uint32_t lba28_sector_count;
     uint64_t lba48_sector_count;
 
+    uint16_t num_sectors_per_track;
+
     uint8_t serial[20];
 
     gpt_efi_header_t device_gpt_header;

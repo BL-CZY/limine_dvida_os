@@ -88,6 +88,9 @@ int identify_ata_drive(storage_device_t *drive) {
         drive->serial[(i * 2) + 1] = (uint8_t)(drive_info_buffer[34 + i]);
     }
 
+    // set sector count per track
+    drive->num_sectors_per_track = drive_info_buffer[21];
+
     // identify gpt header
 
     uint8_t buffer[512];
@@ -120,6 +123,8 @@ int identify_ata_drive(storage_device_t *drive) {
     if(drive->is_lba48_supported) {
         kprintf("addressable sectors for lba48 count: %x\n", drive->lba48_sector_count);
     }
+
+    kprintf("device sector num per track: %u", drive->num_sectors_per_track);
 
     return 0;
 }

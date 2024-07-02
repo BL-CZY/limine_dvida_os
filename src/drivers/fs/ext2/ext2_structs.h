@@ -31,6 +31,28 @@
 #define EXT2_S_IWOTH	0x0002	// others write
 #define EXT2_S_IXOTH	0x0001	// others execute
 
+#define EXT2_SECRM_FL	0x00000001	// secure deletion
+#define EXT2_UNRM_FL	0x00000002	// record for undelete
+#define EXT2_COMPR_FL	0x00000004	// compressed file
+#define EXT2_SYNC_FL	0x00000008	// synchronous updates
+#define EXT2_IMMUTABLE_FL	0x00000010	// immutable file
+#define EXT2_APPEND_FL	0x00000020	// append only
+#define EXT2_NODUMP_FL	0x00000040	// do not dump/delete file
+#define EXT2_NOATIME_FL	0x00000080	// do not update .i_atime
+
+//* Reserved for compression usage
+#define EXT2_DIRTY_FL	0x00000100	// Dirty (modified)
+#define EXT2_COMPRBLK_FL	0x00000200	// compressed blocks
+#define EXT2_NOCOMPR_FL	0x00000400	// access raw compressed data
+#define EXT2_ECOMPR_FL	0x00000800	// compression error
+
+//* End of compression flags
+#define EXT2_BTREE_FL	0x00001000	// b-tree format directory
+#define EXT2_INDEX_FL	0x00001000	// hash indexed directory
+#define EXT2_IMAGIC_FL	0x00002000	// AFS directory
+#define EXT3_JOURNAL_DATA_FL	0x00004000	// journal file data
+#define EXT2_RESERVED_FL	0x80000000	// reserved for ext2 library
+
 typedef struct ext2_superblock {
     #pragma region basic
 
@@ -138,6 +160,9 @@ typedef struct inode {
     uint16_t i_gid;
     uint16_t i_links_count;
     uint32_t i_blocks;
+    /**
+     * 32 bits value for flags
+     */
     uint32_t i_flags;
     uint32_t i_osd1;
     uint32_t i_block[15];

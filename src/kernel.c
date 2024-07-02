@@ -14,6 +14,9 @@ void kernel_main() {
     kprintf("\n----ATA drive detection----\n");
 
     ata_drive_init();
+    
+    create_gpt(&ata_primary_drive);
+
     kprintf("\n");
 
     current_io_state = stdin_command;
